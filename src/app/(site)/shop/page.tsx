@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AlertCircle, ShoppingBag } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { ProductCard } from "@/components/product-card";
+import { Stagger, StaggerItem } from "@/components/scroll-reveal";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { getProducts } from "@/lib/products";
 import { site } from "@/lib/site";
@@ -63,11 +64,13 @@ async function ProductGrid() {
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <StaggerItem key={product.id} className="h-full">
+          <ProductCard product={product} />
+        </StaggerItem>
       ))}
-    </div>
+    </Stagger>
   );
 }
 
@@ -93,7 +96,7 @@ function StatusMessage({
           href={`${site.whatsappUrl}?text=${encodeURIComponent("Hi New Legacy, what products do you have available?")}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-8 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 font-semibold text-charcoal transition-colors hover:bg-gold-light"
+          className="btn-luxe mt-8 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 font-semibold text-charcoal hover:bg-gold-light"
         >
           <WhatsAppIcon className="size-5" />
           Ask on WhatsApp

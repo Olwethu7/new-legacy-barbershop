@@ -40,7 +40,7 @@ export function AddToCartButton({ product, disabled }: Props) {
         setAdded(true);
         openCart();
       }}
-      className={`flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.15em] transition-colors ${
+      className={`btn-luxe flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.15em] ${
         added ? "bg-gold text-charcoal" : "bg-charcoal text-offwhite hover:bg-gold hover:text-charcoal"
       }`}
     >

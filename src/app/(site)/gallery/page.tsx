@@ -52,7 +52,7 @@ export default async function GalleryPage() {
                 href={whatsappBookingUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2.5 rounded-full bg-gold px-8 py-4 font-semibold text-charcoal transition-colors hover:bg-gold-light"
+                className="btn-luxe inline-flex items-center gap-2.5 rounded-full bg-gold px-8 py-4 font-semibold text-charcoal hover:bg-gold-light"
               >
                 <WhatsAppIcon className="size-5" />
                 Book on WhatsApp

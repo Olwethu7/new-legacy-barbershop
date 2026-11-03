@@ -21,7 +21,7 @@ export function SiteFooter() {
           <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-offwhite/70 transition-colors hover:text-gold">
+                <Link href={link.href} className="link-draw text-offwhite/70 transition-colors hover:text-gold">
                   {link.label}
                 </Link>
               </li>
@@ -35,19 +35,19 @@ export function SiteFooter() {
             <li>
               <a href={site.phoneHref} className="flex items-center gap-3 text-offwhite/70 transition-colors hover:text-gold">
                 <Phone className="size-4 shrink-0 text-gold" />
-                {site.phoneDisplay}
+                <span className="link-draw">{site.phoneDisplay}</span>
               </a>
             </li>
             <li>
               <a href={site.whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-offwhite/70 transition-colors hover:text-gold">
                 <WhatsAppIcon className="size-4 shrink-0 text-gold" />
-                WhatsApp us
+                <span className="link-draw">WhatsApp us</span>
               </a>
             </li>
             <li>
               <a href={`mailto:${site.email}`} className="flex items-center gap-3 break-all text-offwhite/70 transition-colors hover:text-gold">
                 <Mail className="size-4 shrink-0 text-gold" />
-                {site.email}
+                <span className="link-draw">{site.email}</span>
               </a>
             </li>
           </ul>

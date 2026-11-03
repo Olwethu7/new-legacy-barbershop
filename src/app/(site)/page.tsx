@@ -2,9 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import * as m from "framer-motion/client";
 import { ArrowRight, Car, Crown, Sparkles, Award } from "lucide-react";
+import { HeroBackdrop } from "@/components/hero-backdrop";
 import { MagneticLink } from "@/components/magnetic-link";
 import { Parallax } from "@/components/parallax";
-import { ScrollReveal } from "@/components/scroll-reveal";
+import { ScrollReveal, Stagger, StaggerItem } from "@/components/scroll-reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { ServiceCard } from "@/components/service-card";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
@@ -54,6 +55,8 @@ export default function Home() {
           transition={heroIn(0, 2.4)}
           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_60%_at_75%_45%,rgba(201,162,39,0.09),transparent_70%),linear-gradient(180deg,#141414_0%,#111111_60%)]"
         />
+        {/* Faint crossfading photos, gold dust and grain */}
+        <HeroBackdrop />
 
         <div className="mx-auto grid max-w-7xl items-center gap-y-16 px-4 pt-24 sm:px-6 sm:pt-32 lg:min-h-[calc(100svh-4.5rem)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-x-12 lg:px-8 lg:pt-0">
           {/* Left: text */}
@@ -74,22 +77,22 @@ export default function Home() {
             </m.p>
 
             {/* Bebas Neue has a single weight, so a thin same-colour stroke adds extra heft. */}
+            {/* Each line fades in while growing from 96% to full size (transform + opacity only). */}
             <h1 className="mt-8 font-display text-[clamp(3rem,13vw,7rem)] leading-[0.86] tracking-[0.01em] [-webkit-text-stroke:1.5px_currentColor] lg:text-[clamp(5rem,7.2vw,8.5rem)]">
               <m.span
-                className="block [text-shadow:0_4px_30px_rgba(0,0,0,0.6)]"
-                initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={heroIn(0.25, 1.6)}
+                className="block origin-left [text-shadow:0_4px_30px_rgba(0,0,0,0.6)]"
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={heroIn(0.25, 1.4)}
               >
                 Growing Together,
               </m.span>
               <m.span
-                className="block"
-                initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={heroIn(0.55, 1.6)}
+                className="block origin-left"
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={heroIn(0.45, 1.4)}
               >
-                {/* Glow lives on an inner span so the blur-in animation doesn't overwrite it */}
                 <span className="text-gold [text-shadow:0_0_32px_rgba(201,162,39,0.45),0_0_10px_rgba(201,162,39,0.3)]">
                   Leaving a Legacy
                 </span>
@@ -97,9 +100,10 @@ export default function Home() {
             </h1>
 
             <m.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={heroIn(1.0, 1.1)}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={heroIn(0.8, 1.1)}
+              style={{ transformOrigin: "left" }}
               className="mt-8 max-w-xl text-lg leading-relaxed text-offwhite/70 sm:text-xl"
             >
               <span className="font-semibold text-offwhite">The Barber with SuperGlue.</span> Premium mobile
@@ -116,14 +120,14 @@ export default function Home() {
                 href={whatsappBookingUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2.5 rounded-full bg-gold px-8 py-4 font-semibold text-charcoal shadow-[0_10px_40px_-10px_rgba(201,162,39,0.6)] transition-[background-color,box-shadow] duration-500 hover:bg-gold-light hover:shadow-[0_16px_50px_-10px_rgba(201,162,39,0.75)]"
+                className="btn-luxe inline-flex items-center justify-center gap-2.5 rounded-full bg-gold px-8 py-4 font-semibold text-charcoal shadow-[0_10px_40px_-10px_rgba(201,162,39,0.6)] hover:bg-gold-light"
               >
                 <WhatsAppIcon className="size-5" />
                 Book on WhatsApp
               </MagneticLink>
               <Link
                 href="/services"
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-offwhite/25 px-8 py-4 font-semibold text-offwhite transition-colors duration-500 hover:border-gold hover:text-gold"
+                className="btn-luxe group inline-flex items-center justify-center gap-2 rounded-full border border-offwhite/25 px-8 py-4 font-semibold text-offwhite hover:border-gold hover:text-gold"
               >
                 View Services
                 <ArrowRight className="size-4 transition-transform duration-500 group-hover:translate-x-1" />
@@ -160,15 +164,12 @@ export default function Home() {
               transition={heroIn(0.5, 2.4)}
               className="pointer-events-none absolute inset-x-0 top-0 mx-auto aspect-square w-[95%] max-w-[34rem]"
             >
-              <m.div
-                animate={{ opacity: [0.85, 1, 0.85], scale: [1, 1.05, 1] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                className="relative size-full"
-              >
+              {/* Drifts and pulses on a 10s CSS loop (see .hero-glow in globals.css) */}
+              <div className="hero-glow relative size-full">
                 {/* Radial falloff + heavy blur = light, not a disc */}
                 <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_42%,rgba(201,162,39,0.32)_0%,rgba(201,162,39,0.14)_32%,rgba(201,162,39,0.04)_55%,transparent_70%)] blur-3xl" />
                 <div className="absolute inset-[22%] -translate-y-[8%] rounded-full bg-[radial-gradient(circle,rgba(224,189,74,0.22)_0%,transparent_70%)] blur-3xl" />
-              </m.div>
+              </div>
             </m.div>
 
             {/* The barber slides up into place, then scrolls a little slower than the page (parallax) */}
@@ -205,9 +206,9 @@ export default function Home() {
             />
           </ScrollReveal>
 
-          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <Stagger className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {reasons.map(({ icon: Icon, title, text }, i) => (
-              <ScrollReveal key={title} delay={i * 0.12} className="h-full">
+              <StaggerItem key={title} className="h-full">
                 <div className="group relative h-full rounded-2xl border border-charcoal/10 bg-white/60 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-gold/60 hover:bg-white hover:shadow-xl hover:shadow-gold/10">
                   <span className="absolute right-6 top-6 font-display text-6xl leading-none text-charcoal/5 transition-colors duration-500 group-hover:text-gold/20">
                     {String(i + 1).padStart(2, "0")}
@@ -218,9 +219,9 @@ export default function Home() {
                   <h3 className="mt-6 font-display text-2xl tracking-wide text-charcoal">{title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-charcoal/65">{text}</p>
                 </div>
-              </ScrollReveal>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -233,18 +234,18 @@ export default function Home() {
               href="/services"
               className="group inline-flex shrink-0 items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-gold transition-colors hover:text-gold-light"
             >
-              All services
+              <span className="link-draw">All services</span>
               <ArrowRight className="size-4 transition-transform duration-500 group-hover:translate-x-1" />
             </Link>
           </ScrollReveal>
 
-          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <Stagger className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((service, i) => (
-              <ScrollReveal key={service.name} delay={i * 0.12} className="h-full">
+              <StaggerItem key={service.name} className="h-full">
                 <ServiceCard service={service} index={i} tone="dark" />
-              </ScrollReveal>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
@@ -258,7 +259,7 @@ export default function Home() {
             href={whatsappBookingUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-2.5 rounded-full bg-charcoal px-8 py-4 font-semibold text-offwhite transition-all duration-500 hover:-translate-y-0.5 hover:bg-charcoal-soft hover:shadow-xl hover:shadow-charcoal/30"
+            className="btn-luxe inline-flex shrink-0 items-center gap-2.5 rounded-full bg-charcoal px-8 py-4 font-semibold text-offwhite hover:bg-charcoal-soft"
           >
             <WhatsAppIcon className="size-5 text-gold" />
             Book on WhatsApp

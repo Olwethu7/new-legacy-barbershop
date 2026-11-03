@@ -235,7 +235,7 @@ export function CartDrawer() {
                   <button
                     type="button"
                     onClick={() => setStep("details")}
-                    className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-full bg-gold px-6 py-4 font-semibold text-charcoal transition-colors hover:bg-gold-light"
+                    className="btn-luxe mt-5 flex w-full items-center justify-center gap-2.5 rounded-full bg-gold px-6 py-4 font-semibold text-charcoal hover:bg-gold-light"
                   >
                     Checkout
                   </button>
@@ -283,7 +283,7 @@ export function CartDrawer() {
                   <button
                     type="submit"
                     disabled={pending}
-                    className="flex w-full items-center justify-center gap-2.5 rounded-full bg-gold px-6 py-4 font-semibold text-charcoal transition-colors hover:bg-gold-light disabled:cursor-wait disabled:opacity-70"
+                    className="btn-luxe flex w-full items-center justify-center gap-2.5 rounded-full bg-gold px-6 py-4 font-semibold text-charcoal hover:bg-gold-light disabled:cursor-wait disabled:opacity-70"
                   >
                     {pending ? <Loader2 className="size-5 animate-spin" /> : <WhatsAppIcon className="size-5" />}
                     {pending ? "Placing order…" : "Place Order"}

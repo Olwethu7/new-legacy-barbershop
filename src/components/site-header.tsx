@@ -16,8 +16,8 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { itemCount, openCart } = useCart();
 
-  // At the top the header blends into the dark hero. Once scrolled, it turns
-  // translucent with a blur, a gold hairline and a soft shadow.
+  // At the top the header blends into the dark hero. Once scrolled, a frosted layer
+  // (blur, gold hairline, soft shadow) fades in. Only opacity animates, so it stays at 60fps.
   const { scrollY, scrollYProgress } = useScroll();
   const [scrolled, setScrolled] = useState(false);
   // Slides away while scrolling down, comes straight back on any scroll up.
@@ -39,18 +39,27 @@ export function SiteHeader() {
   return (
     <motion.header
       initial={false}
-      animate={{
-        y: hide ? "-100%" : "0%",
-        backgroundColor: solid ? "rgba(17,17,17,0.78)" : "rgba(17,17,17,1)",
-        borderBottomColor: solid ? "rgba(201,162,39,0.18)" : "rgba(201,162,39,0)",
-        boxShadow: solid && !hide ? "0 10px 30px -12px rgba(0,0,0,0.55)" : "0 0 0 0 rgba(0,0,0,0)",
-      }}
-      transition={{ duration: 0.5, ease: EASE_LUXE, y: { duration: hide ? 0.45 : 0.35, ease: EASE_LUXE } }}
+      animate={{ y: hide ? "-100%" : "0%" }}
+      transition={{ duration: hide ? 0.45 : 0.35, ease: EASE_LUXE }}
       onFocusCapture={() => setHidden(false)}
-      className={`site-header sticky top-0 z-40 border-b transition-[backdrop-filter] duration-500 ${
-        solid ? "backdrop-blur-xl backdrop-saturate-150" : ""
-      }`}
+      className="site-header sticky top-0 z-40 isolate"
     >
+      {/* Solid charcoal at the top of the page... */}
+      <motion.div
+        aria-hidden="true"
+        initial={false}
+        animate={{ opacity: solid ? 0 : 1 }}
+        transition={{ duration: 0.5, ease: EASE_LUXE }}
+        className="pointer-events-none absolute inset-0 -z-10 bg-charcoal"
+      />
+      {/* ...crossfades to frosted glass once scrolled */}
+      <motion.div
+        aria-hidden="true"
+        initial={false}
+        animate={{ opacity: solid ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: EASE_LUXE }}
+        className="pointer-events-none absolute inset-0 -z-10 border-b border-gold/20 bg-charcoal/78 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.55)] backdrop-blur-xl backdrop-saturate-150"
+      />
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={false}
@@ -68,7 +77,7 @@ export function SiteHeader() {
                 <Link
                   href={link.href}
                   aria-current={isActive(link.href) ? "page" : undefined}
-                  className={`relative py-2 text-sm font-medium uppercase tracking-[0.15em] transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-gold after:transition-transform ${
+                  className={`relative py-2 text-sm font-medium uppercase tracking-[0.15em] transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-gold after:transition-transform after:duration-500 after:ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     isActive(link.href)
                       ? "text-gold after:scale-x-100"
                       : "text-offwhite/75 after:scale-x-0 hover:text-offwhite hover:after:scale-x-100"
@@ -99,7 +108,7 @@ export function SiteHeader() {
             href={whatsappBookingUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-gold-light sm:inline-flex"
+            className="btn-luxe hidden items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-charcoal hover:bg-gold-light sm:inline-flex"
           >
             <WhatsAppIcon className="size-4" />
             Book on WhatsApp
@@ -145,7 +154,7 @@ export function SiteHeader() {
             href={whatsappBookingUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3.5 font-semibold text-charcoal"
+            className="btn-luxe mt-4 flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-3.5 font-semibold text-charcoal"
           >
             <WhatsAppIcon className="size-5" />
             Book on WhatsApp

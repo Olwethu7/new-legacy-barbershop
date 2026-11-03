@@ -7,7 +7,9 @@ import { usePathname } from "next/navigation";
  * Fades the old page out and the new page in when the visitor follows a link.
  * Uses the browser's View Transitions API, so the animation runs on the GPU
  * and the old page can fade out properly (not possible with Framer Motion in the App Router).
- * Browsers without support just navigate normally. Styles live in globals.css (.page-out / .page-in).
+ * Browsers without support just navigate normally. Styles live in globals.css (.page-out / .page-in):
+ * the old page fades and lifts 8px, the new one fades and rises 12px, about 0.4s in total.
+ * Turned off entirely for visitors with "reduce motion" on.
  *
  * Keyed by pathname so it only animates on route changes, not on other updates like adding to cart.
  */

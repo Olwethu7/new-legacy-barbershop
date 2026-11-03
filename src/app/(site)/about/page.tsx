@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Award, Car, Crown, Scissors } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { ScrollReveal } from "@/components/scroll-reveal";
+import { ScrollReveal, Stagger, StaggerItem } from "@/components/scroll-reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { whatsappBookingUrl } from "@/lib/site";
@@ -58,7 +58,7 @@ export default function AboutPage() {
             </p>
           </ScrollReveal>
 
-          <ScrollReveal delay={0.12} className="space-y-6 text-lg leading-relaxed text-charcoal/75">
+          <ScrollReveal delay={0.08} className="space-y-6 text-lg leading-relaxed text-charcoal/75">
             <p className="text-2xl leading-snug text-charcoal sm:text-3xl">
               Welcome to <span className="font-semibold">New Legacy Barbershop</span>, a unique and personal barbering
               experience that began in 2023.
@@ -115,7 +115,7 @@ export default function AboutPage() {
                 href={whatsappBookingUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 font-semibold text-charcoal transition-colors hover:bg-gold-light"
+                className="btn-luxe mt-8 inline-flex items-center gap-2.5 rounded-full bg-gold px-7 py-3.5 font-semibold text-charcoal hover:bg-gold-light"
               >
                 <WhatsAppIcon className="size-5" />
                 Book with Mr Barber
@@ -132,9 +132,9 @@ export default function AboutPage() {
           <ScrollReveal>
             <SectionHeading eyebrow="What We Stand For" title="Our values" align="center" />
           </ScrollReveal>
-          <div className="mt-14 grid gap-5 md:grid-cols-3">
+          <Stagger className="mt-14 grid gap-5 md:grid-cols-3">
             {values.map(({ icon: Icon, title, text }, i) => (
-              <ScrollReveal key={title} delay={i * 0.12} className="h-full">
+              <StaggerItem key={title} className="h-full">
               <article
                 className="group relative h-full overflow-hidden rounded-2xl border border-charcoal/10 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-xl hover:shadow-gold/10"
               >
@@ -150,19 +150,19 @@ export default function AboutPage() {
                 <h3 className="mt-6 font-display text-3xl tracking-wide text-charcoal">{title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-charcoal/65">{text}</p>
               </article>
-              </ScrollReveal>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
 
-          <div className="mt-14 text-center">
+          <ScrollReveal className="mt-14 text-center">
             <Link
               href="/services"
               className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-charcoal transition-colors hover:text-gold"
             >
-              See our services
+              <span className="link-draw">See our services</span>
               <ArrowRight className="size-4" />
             </Link>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
     </>
