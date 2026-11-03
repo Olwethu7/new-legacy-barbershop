@@ -39,9 +39,12 @@ export function GalleryGrid({ images }: { images: GalleryImage[] }) {
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
             {/* Gold border highlight */}
             <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 transition-all duration-700 group-hover:ring-2 group-hover:ring-gold/80" />
-            <span className="pointer-events-none absolute bottom-4 right-5 font-display text-lg tracking-widest text-gold opacity-0 transition-all duration-700 group-hover:opacity-100">
-              {String(i + 1).padStart(2, "0")}
-            </span>
+            <figcaption className="pointer-events-none absolute inset-x-5 bottom-4 flex items-end justify-between gap-4 font-display tracking-widest opacity-0 transition-all duration-700 group-hover:opacity-100">
+              {image.caption && <span className="text-xl text-offwhite">{image.caption}</span>}
+              <span aria-hidden="true" className="ml-auto text-lg text-gold">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+            </figcaption>
           </figure>
         </motion.li>
       ))}
