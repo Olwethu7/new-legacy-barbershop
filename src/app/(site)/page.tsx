@@ -55,7 +55,7 @@ export default function Home() {
           transition={heroIn(0, 2.4)}
           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_60%_at_75%_45%,rgba(201,162,39,0.09),transparent_70%),linear-gradient(180deg,#141414_0%,#111111_60%)]"
         />
-        {/* Faint crossfading photos, gold dust and grain */}
+        {/* Drifting gold dust and grain */}
         <HeroBackdrop />
 
         <div className="mx-auto grid max-w-7xl items-center gap-y-16 px-4 pt-24 sm:px-6 sm:pt-32 lg:min-h-[calc(100svh-4.5rem)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-x-12 lg:px-8 lg:pt-0">
