@@ -12,6 +12,10 @@ create table if not exists public.products (
   category    text,
   description text,
   image_url   text,
+  image_urls  text[] not null default '{}',        -- extra angles, in display order
+  highlights  text[] not null default '{}',        -- "About this item" bullets
+  specs       jsonb  not null default '[]'::jsonb  -- [{"label": "Sole Material", "value": "Rubber"}]
+               constraint products_specs_is_array check (jsonb_typeof(specs) = 'array'),
   stock_status text not null default 'in_stock'
                constraint products_stock_status_check
                check (stock_status in ('in_stock', 'low_stock', 'out_of_stock')),

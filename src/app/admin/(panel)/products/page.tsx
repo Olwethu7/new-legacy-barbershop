@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import * as m from "framer-motion/client";
-import { AlertCircle, ImageOff, Package, Plus } from "lucide-react";
+import { AlertCircle, ImageOff, Package, Pencil, Plus } from "lucide-react";
 import { FadeIn } from "@/components/admin/admin-motion";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
 import { canOptimizeImage } from "@/lib/images";
@@ -98,7 +98,7 @@ export default async function AdminProductsPage() {
                               fill
                               sizes="56px"
                               unoptimized={!canOptimizeImage(product.image_url)}
-                              className="object-cover"
+                              className="object-contain p-1"
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center text-charcoal/25">
@@ -121,7 +121,17 @@ export default async function AdminProductsPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <DeleteProductButton id={product.id} name={product.name} />
+                        <div className="flex items-center justify-end gap-1">
+                          <Link
+                            href={`/admin/products/${product.id}/edit`}
+                            aria-label={`Edit ${product.name}`}
+                            className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-charcoal/50 transition-colors hover:bg-gold/10 hover:text-charcoal"
+                          >
+                            <Pencil className="size-3.5" />
+                            Edit
+                          </Link>
+                          <DeleteProductButton id={product.id} name={product.name} />
+                        </div>
                       </td>
                     </m.tr>
                   );
