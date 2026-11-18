@@ -161,16 +161,9 @@ export function HeroCinematic() {
             // Outer div positions (incl. M3's centring translate); inner motion.div animates.
             <div key={shot.key} className={`absolute ${shot.className}`}>
               <motion.div className="size-full" initial={initial} animate={animate} transition={transition}>
-                <div className="relative size-full overflow-hidden rounded-2xl bg-charcoal-soft shadow-[0_30px_60px_-18px_rgba(0,0,0,0.85),0_0_0_1px_rgba(201,162,39,0.45)]">
-                  {/* Same treatment for all three: the whole photo, never cropped or zoomed,
-                      over a blurred copy of itself so the card has no empty bars. */}
-                  <Image
-                    src={shot.src}
-                    alt=""
-                    fill
-                    sizes="(min-width: 1024px) 280px, (min-width: 640px) 220px, 170px"
-                    className="scale-110 object-cover opacity-60 blur-xl"
-                  />
+                {/* Clean white floating card with a soft shadow. The whole photo shows (never cropped or zoomed);
+                    any space around a photo whose shape differs from the card is plain white. */}
+                <div className="relative size-full overflow-hidden rounded-2xl bg-white shadow-[0_24px_50px_-16px_rgba(0,0,0,0.55)] ring-1 ring-black/5">
                   <Image
                     src={shot.src}
                     alt=""
@@ -178,9 +171,6 @@ export function HeroCinematic() {
                     sizes="(min-width: 1024px) 280px, (min-width: 640px) 220px, 170px"
                     className="object-contain"
                   />
-                  {/* Hairline + soft sheen so they read as printed photos */}
-                  <span className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
-                  <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/10" />
                 </div>
               </motion.div>
             </div>
