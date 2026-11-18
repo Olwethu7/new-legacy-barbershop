@@ -32,7 +32,9 @@ async function AccountDashboard() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const [ordersRes, referralsRes, promosRes] = await Promise.all([
+  const [roleRes, ordersRes, referralsRes, promosRes] = await Promise.all([
+    // The signed-in user's role, read straight from their profiles row. RLS only lets them read their own.
+    supabase.from("profiles").select("role").eq("id", user.id).maybeSingle<{ role: string }>(),
     supabase
       .from("orders")
       .select("id, items, subtotal, discount, total, status, created_at, promo_code")
@@ -54,6 +56,8 @@ async function AccountDashboard() {
   const referralCount = referralsRes.count ?? 0;
   const rewards = promosRes.data ?? [];
   const firstName = profile?.first_name || user.email.split("@")[0];
+  // Fails closed: any error, missing row or other role means no Admin Panel button.
+  const isAdmin = !roleRes.error && roleRes.data?.role === "admin";
 
   return (
     <>
@@ -75,7 +79,7 @@ async function AccountDashboard() {
             <p className="mt-4 text-offwhite/60">{user.email}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {profile?.role === "admin" && (
+            {isAdmin && (
               <Link
                 href="/admin"
                 className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-gold-light"
