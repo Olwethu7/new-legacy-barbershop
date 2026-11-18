@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { Menu, ShoppingBag, UserRound, X } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useCart } from "@/context/cart-context";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
@@ -90,7 +90,17 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
+          <Link
+            href="/account"
+            aria-label="My account"
+            aria-current={pathname.startsWith("/account") ? "page" : undefined}
+            className={`inline-flex size-11 items-center justify-center rounded-full transition-colors hover:bg-white/10 hover:text-gold ${
+              pathname.startsWith("/account") ? "text-gold" : "text-offwhite"
+            }`}
+          >
+            <UserRound className="size-5" />
+          </Link>
           <button
             type="button"
             onClick={openCart}
@@ -149,6 +159,19 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/account"
+                aria-current={pathname.startsWith("/account") ? "page" : undefined}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-3 py-3.5 font-display text-2xl tracking-wide ${
+                  pathname.startsWith("/account") ? "text-gold" : "text-offwhite"
+                }`}
+              >
+                <UserRound className="size-5" />
+                My Account
+              </Link>
+            </li>
           </ul>
           <a
             href={whatsappBookingUrl()}

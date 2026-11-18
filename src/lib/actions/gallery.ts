@@ -72,3 +72,42 @@ export async function deleteGalleryImage(id: string): Promise<ActionResult> {
   refreshGallery();
   return { ok: true };
 }
+
+/** Sets the cut's name (caption) and price shown on hover on the public gallery. */
+export async function updateGalleryImage(
+  id: string,
+  input: { caption: string; price: string | number | null },
+): Promise<ActionResult> {
+  await requireAdmin();
+
+  const caption = String(input?.caption ?? "").trim().replace(/\s+/g, " ");
+  if (caption.length > 60) return { ok: false, error: "Keep the name under 60 characters." };
+
+  const rawPrice = input?.price === null || input?.price === undefined ? "" : String(input.price).trim();
+  const price = rawPrice === "" ? null : Math.round(Number(rawPrice) * 100) / 100;
+  if (price !== null && (!Number.isFinite(price) || price < 0 || price > 100000)) {
+    return { ok: false, error: "Enter a valid price." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("gallery")
+    .update({ caption: caption || null, price })
+    .eq("id", id)
+    .select("id");
+
+  if (error) {
+    console.error("updateGalleryImage:", error.message);
+    return {
+      ok: false,
+      error:
+        error.code === "42703" || error.code === "PGRST204"
+          ? "The gallery price column is missing. Run supabase/migrations/004 in Supabase."
+          : "Couldn't save the details. Please try again.",
+    };
+  }
+  if (!data || data.length === 0) return { ok: false, error: "That image no longer exists." };
+
+  refreshGallery();
+  return { ok: true };
+}

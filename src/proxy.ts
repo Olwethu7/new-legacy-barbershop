@@ -1,12 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Customer pages that signed-out visitors can open. */
+const ACCOUNT_PUBLIC = new Set(["/account/login", "/account/register"]);
+
 /**
- * Runs before every /admin request:
+ * Runs before every /admin and /account request:
  * - refreshes the Supabase login session cookie when it's about to expire
- * - sends signed-out visitors to /admin/login, and signed-in admins away from it
+ * - sends signed-out visitors to the right login page, and signed-in users away from it
  *
- * This is a fast first check. The admin layout checks again on the server.
+ * This is a fast first check only: it knows *whether* you're signed in, not whether
+ * you're an admin. The admin layout checks the role on the server (requireAdmin).
  */
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -31,8 +35,16 @@ export async function proxy(request: NextRequest) {
   // Verifies the session token. Don't run other code between createServerClient and this call.
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims);
-  const onLoginPage = request.nextUrl.pathname === "/admin/login";
+  const { pathname } = request.nextUrl;
 
+  if (pathname === "/account" || pathname.startsWith("/account/")) {
+    const isPublic = ACCOUNT_PUBLIC.has(pathname);
+    if (!signedIn && !isPublic) return redirectWithCookies(request, "/account/login", response);
+    if (signedIn && isPublic) return redirectWithCookies(request, "/account", response);
+    return response;
+  }
+
+  const onLoginPage = pathname === "/admin/login";
   if (!signedIn && !onLoginPage) {
     return redirectWithCookies(request, "/admin/login", response);
   }
@@ -54,6 +66,6 @@ function redirectWithCookies(request: NextRequest, pathname: string, from: NextR
 }
 
 export const config = {
-  // Only the admin area needs auth, so the public site stays fully static.
-  matcher: ["/admin", "/admin/:path*"],
+  // Only the admin and customer areas need auth, so the rest of the site stays fully static.
+  matcher: ["/admin", "/admin/:path*", "/account", "/account/:path*"],
 };

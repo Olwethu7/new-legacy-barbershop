@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ImagePlus, Images, Loader2, Trash2, Upload } from "lucide-react";
+import { Check, ImagePlus, Images, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { addGalleryImage, deleteGalleryImage } from "@/lib/actions/gallery";
+import { addGalleryImage, deleteGalleryImage, updateGalleryImage } from "@/lib/actions/gallery";
 import { EASE_LUXE } from "@/lib/motion";
 import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MEDIA_BUCKET } from "@/lib/product-options";
 import { createClient } from "@/lib/supabase/client";
@@ -14,6 +14,7 @@ export type AdminGalleryImage = {
   id: string;
   url: string;
   caption: string | null;
+  price: number | null;
   width: number | null;
   height: number | null;
 };
@@ -188,32 +189,99 @@ function GalleryTile({ image, index }: { image: AdminGalleryImage; index: number
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.94 }}
       transition={{ duration: 0.5, delay: Math.min(index, 12) * 0.04, ease: EASE_LUXE }}
-      className="group relative aspect-square overflow-hidden rounded-2xl bg-charcoal shadow-sm ring-1 ring-charcoal/10"
+      className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-charcoal/10"
     >
-      <Image
-        src={image.url}
-        alt={image.caption ?? "Gallery photo"}
-        fill
-        sizes="(min-width: 1280px) 25vw, (min-width: 640px) 33vw, 50vw"
-        className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${pending ? "opacity-40" : ""}`}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/70 via-transparent to-transparent opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100" />
-      <span className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-inset ring-transparent transition-colors duration-300 group-hover:ring-gold/70" />
+      <div className="group relative aspect-square overflow-hidden bg-charcoal">
+        <Image
+          src={image.url}
+          alt={image.caption ?? "Gallery photo"}
+          fill
+          sizes="(min-width: 1280px) 25vw, (min-width: 640px) 33vw, 50vw"
+          className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${pending ? "opacity-40" : ""}`}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/70 via-transparent to-transparent opacity-100 transition-opacity duration-300 lg:opacity-0 lg:group-hover:opacity-100" />
+        <span className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-inset ring-transparent transition-colors duration-300 group-hover:ring-gold/70" />
 
-      <button
-        type="button"
-        onClick={handleDelete}
-        disabled={pending}
-        aria-label={confirming ? "Confirm delete image" : "Delete image"}
-        className={`absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold shadow-lg backdrop-blur transition-all focus-visible:opacity-100 ${
-          confirming
-            ? "bg-red-600 text-white opacity-100"
-            : "bg-white/90 text-red-600 opacity-100 hover:bg-white lg:opacity-0 lg:group-hover:opacity-100"
-        }`}
-      >
-        {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
-        {pending ? "Deleting…" : confirming ? "Confirm" : "Delete"}
-      </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={pending}
+          aria-label={confirming ? "Confirm delete image" : "Delete image"}
+          className={`absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold shadow-lg backdrop-blur transition-all focus-visible:opacity-100 ${
+            confirming
+              ? "bg-red-600 text-white opacity-100"
+              : "bg-white/90 text-red-600 opacity-100 hover:bg-white lg:opacity-0 lg:group-hover:opacity-100"
+          }`}
+        >
+          {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+          {pending ? "Deleting…" : confirming ? "Confirm" : "Delete"}
+        </button>
+      </div>
+      <TileDetails image={image} />
     </motion.li>
+  );
+}
+
+/** Name of the cut + price, shown on hover on the public gallery. */
+function TileDetails({ image }: { image: AdminGalleryImage }) {
+  const [caption, setCaption] = useState(image.caption ?? "");
+  const [price, setPrice] = useState(image.price === null ? "" : String(image.price));
+  const [saving, startSaving] = useTransition();
+
+  const dirty = caption !== (image.caption ?? "") || price !== (image.price === null ? "" : String(image.price));
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    startSaving(async () => {
+      const result = await updateGalleryImage(image.id, { caption, price });
+      if (result.ok) toast.success("Details saved");
+      else toast.error(result.error);
+    });
+  }
+
+  const input =
+    "w-full min-w-0 rounded-lg border border-charcoal/15 bg-offwhite/60 px-2.5 py-2 text-sm text-charcoal placeholder:text-charcoal/35 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20";
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-3">
+      <label className="sr-only" htmlFor={`caption-${image.id}`}>
+        Name of the cut
+      </label>
+      <input
+        id={`caption-${image.id}`}
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        maxLength={60}
+        placeholder="Name of the cut"
+        className={input}
+      />
+      <div className="flex gap-2">
+        <label className="sr-only" htmlFor={`price-${image.id}`}>
+          Price in Rand
+        </label>
+        <div className="relative min-w-0 flex-1">
+          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-charcoal/45">R</span>
+          <input
+            id={`price-${image.id}`}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            inputMode="decimal"
+            type="number"
+            min={0}
+            step="0.01"
+            placeholder="Price"
+            className={`${input} pl-6`}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={saving || !dirty}
+          aria-label="Save details"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-charcoal text-gold transition-colors hover:bg-charcoal-soft disabled:opacity-40"
+        >
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+        </button>
+      </div>
+    </form>
   );
 }

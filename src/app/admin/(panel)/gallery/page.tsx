@@ -17,6 +17,7 @@ export default async function AdminGalleryPage() {
     id: row.id,
     url: row.image_url,
     caption: row.caption,
+    price: row.price == null ? null : Number(row.price),
     width: row.width ?? null,
     height: row.height ?? null,
   }));
@@ -27,7 +28,8 @@ export default async function AdminGalleryPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Website</p>
         <h1 className="mt-2 font-display text-5xl tracking-wide text-charcoal sm:text-6xl">Gallery</h1>
         <p className="mt-1 text-charcoal/60">
-          Uploaded photos appear at the top of the public Gallery page.
+          Uploaded photos appear at the top of the public Gallery page. Add the cut&apos;s name and price to show
+          them when visitors hover over a photo.
         </p>
       </FadeIn>
 

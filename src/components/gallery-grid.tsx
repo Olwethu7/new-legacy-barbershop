@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import type { GalleryImage } from "@/lib/gallery";
 import { EASE_LUXE, REVEAL, STAGGER } from "@/lib/motion";
+import { formatRand } from "@/lib/services";
 
 /** Images on screen at load stagger in one after another; the rest reveal as you scroll. */
 const INITIAL_BATCH = 6;
@@ -13,7 +14,6 @@ export function GalleryGrid({ images }: { images: GalleryImage[] }) {
     <ul className="columns-1 gap-5 sm:columns-2 lg:columns-3">
       {images.map((image, i) => {
         const featured = i === 0;
-        const number = String(i + 1).padStart(2, "0");
 
         return (
           <motion.li
@@ -51,23 +51,30 @@ export function GalleryGrid({ images }: { images: GalleryImage[] }) {
                   />
                 </div>
 
-                {/* Soft vignette that deepens on hover */}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+                {/* Vignette so the text stays readable. Touch screens can't hover, so it's always on there. */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/85 via-charcoal/10 to-transparent opacity-0 transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 [@media(hover:none)]:opacity-100" />
                 {/* Gold ring */}
                 <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 transition-opacity duration-700 group-hover:opacity-0" />
                 <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 ring-2 ring-inset ring-gold/80 transition-opacity duration-700 group-hover:opacity-100" />
 
-                {/* Caption slides up into place */}
-                <figcaption className="pointer-events-none absolute inset-x-5 bottom-4 flex translate-y-3 items-end justify-between gap-4 font-display tracking-widest opacity-0 transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
-                  {image.caption && <span className="text-xl text-offwhite">{image.caption}</span>}
-                  {/* Rolls from 00 up to this photo's number, like an odometer */}
-                  <span aria-hidden="true" className="ml-auto block h-[1lh] overflow-hidden text-lg leading-none text-gold">
-                    <span className="flex flex-col transition-transform delay-150 duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1/2">
-                      <span className="h-[1lh]">00</span>
-                      <span className="h-[1lh]">{number}</span>
+                {/* Name of the cut + price: fades in and settles up into place on hover */}
+                {(image.caption || image.price !== undefined) && (
+                  <figcaption className="pointer-events-none absolute inset-x-5 bottom-5 flex translate-y-3 items-end justify-between gap-4 opacity-0 transition-[opacity,translate] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0 group-hover:opacity-100 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100">
+                    <span className="min-w-0">
+                      <span className="block text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-gold/80">
+                        The Cut
+                      </span>
+                      <span className="mt-1 block font-display text-2xl leading-none tracking-wide text-offwhite">
+                        {image.caption ?? "Signature Cut"}
+                      </span>
                     </span>
-                  </span>
-                </figcaption>
+                    {image.price !== undefined && (
+                      <span className="shrink-0 rounded-full border border-gold/50 bg-charcoal/70 px-3.5 py-1.5 font-display text-xl leading-none tracking-wide text-gold backdrop-blur-sm">
+                        {formatRand(image.price)}
+                      </span>
+                    )}
+                  </figcaption>
+                )}
               </div>
             </figure>
           </motion.li>

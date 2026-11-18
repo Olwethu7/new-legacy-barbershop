@@ -9,14 +9,16 @@ export type GalleryImage = {
   width: number;
   height: number;
   alt: string;
-  /** Short label shown on the photo, e.g. "Skin Fade". */
+  /** Name of the cut, shown on hover, e.g. "Skin Fade". */
   caption?: string;
+  /** Price of the cut in Rand, shown on hover next to the name. */
+  price?: number;
 };
 
 const GALLERY_DIR = path.join(process.cwd(), "public", "gallery");
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"]);
-/** Site artwork that lives in the folder but isn't a gallery photo (e.g. the hero cut-out). */
-const EXCLUDE = /removebg/i;
+/** Site artwork that lives in the folder but isn't a gallery photo: the hero cut-out and the hero loop's M1/M2/M3. */
+const EXCLUDE = /removebg|^M\d+\./i;
 
 /** Camera and WhatsApp default names say nothing useful, so they get a generic description. */
 const GENERIC_NAME = /^(img|dsc|pxl|photo|image|whatsapp image|screenshot|snapchat|received)[\s_-]?/i;
@@ -25,7 +27,7 @@ const GENERIC_NAME = /^(img|dsc|pxl|photo|image|whatsapp image|screenshot|snapch
  * Alt text and captions for the photos in public/gallery/, keyed by filename.
  * Photos not listed here still show, with alt text made from the filename.
  */
-const PHOTO_DETAILS: Record<string, { alt: string; caption: string }> = {
+const PHOTO_DETAILS: Record<string, { alt: string; caption: string; price?: number }> = {
   "new-legacy-02.png": {
     caption: "Low Cut & Line-Up",
     alt: "Client in a striped T-shirt with arms crossed, showing a low cut with a clean line-up",
@@ -134,6 +136,7 @@ async function getFolderImages(): Promise<GalleryImage[]> {
           height: rotated ? size.width : size.height,
           alt: PHOTO_DETAILS[file]?.alt ?? altFromFilename(file, i),
           caption: PHOTO_DETAILS[file]?.caption,
+          price: PHOTO_DETAILS[file]?.price,
         };
       } catch {
         console.warn(`Skipping unreadable gallery image: ${file}`);
@@ -163,6 +166,8 @@ async function getUploadedImages(): Promise<GalleryImage[]> {
 
   return (data ?? []).map((row, i) => ({
     src: row.image_url,
+    caption: row.caption || undefined,
+    price: row.price == null ? undefined : Number(row.price),
     // Older rows may not have dimensions; the grid still sizes them correctly once loaded.
     width: row.width ?? 1200,
     height: row.height ?? 1500,

@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import * as m from "framer-motion/client";
 import { ArrowRight, Car, Crown, Sparkles, Award } from "lucide-react";
 import { HeroBackdrop } from "@/components/hero-backdrop";
+import { HeroCinematic } from "@/components/hero-cinematic";
 import { MagneticLink } from "@/components/magnetic-link";
 import { Parallax } from "@/components/parallax";
 import { ScrollReveal, Stagger, StaggerItem } from "@/components/scroll-reveal";
@@ -12,7 +12,6 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { EASE_LUXE } from "@/lib/motion";
 import { featuredServiceNames, services } from "@/lib/services";
 import { whatsappBookingUrl } from "@/lib/site";
-import barberImage from "../../../public/gallery/Stylized_Barber_Portrait_with_Wahl_Clippers-removebg-preview.png";
 
 const reasons = [
   {
@@ -172,20 +171,15 @@ export default function Home() {
               </div>
             </m.div>
 
-            {/* The barber slides up into place, then scrolls a little slower than the page (parallax) */}
+            {/* The hero slides up into place, then scrolls a little slower than the page (parallax) */}
             <Parallax distance={140} className="relative">
               <m.div
                 initial={{ opacity: 0, y: 80 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={heroIn(0.6, 1.8)}
               >
-                <Image
-                  src={barberImage}
-                  alt="Mr Barber, founder of New Legacy Barbershop, holding Wahl clippers"
-                  preload
-                  sizes="(min-width: 1024px) 480px, (min-width: 640px) 380px, 300px"
-                  className="h-[25rem] w-auto max-w-full object-contain [mask-image:linear-gradient(to_bottom,black_68%,transparent_98%)] sm:h-[32rem] lg:h-[min(40rem,calc(100svh-7rem))]"
-                />
+                {/* Portrait ⇄ M1/M2/M3 collage loop (see components/hero-cinematic.tsx) */}
+                <HeroCinematic />
               </m.div>
             </Parallax>
           </div>

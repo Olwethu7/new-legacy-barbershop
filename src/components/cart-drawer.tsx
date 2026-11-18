@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Minus, Plus, ShoppingBag, Tag, Trash2, X } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
-import { placeOrder, type CheckoutResult } from "@/lib/actions/orders";
+import { checkPromoCode, placeOrder, type CheckoutResult } from "@/lib/actions/orders";
 import { canOptimizeImage } from "@/lib/images";
 import { formatRand } from "@/lib/services";
 import { site } from "@/lib/site";
@@ -21,6 +21,9 @@ function whatsappOrderUrl(order: PlacedOrder) {
     ...order.items.map((i) => `- ${i.quantity} x ${i.name} (${formatRand(i.line_total)})`),
     "",
     `Subtotal: ${formatRand(order.subtotal)}`,
+    ...(order.discount > 0
+      ? [`Promo ${order.promoCode}: -${formatRand(order.discount)}`, `Total: ${formatRand(order.total)}`]
+      : []),
     `Name: ${order.customerName}`,
     `Phone: ${order.phone}`,
   ].join("\n");
@@ -34,6 +37,29 @@ export function CartDrawer() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<PlacedOrder | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; percent: number } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [checkingPromo, setCheckingPromo] = useState(false);
+
+  // Same rounding as the server (to the cent).
+  const discount = promo ? Math.round(subtotal * promo.percent) / 100 : 0;
+  const total = Math.max(subtotal - discount, 0);
+
+  async function applyPromo() {
+    if (!promoInput.trim()) return;
+    setPromoError(null);
+    setCheckingPromo(true);
+    const result = await checkPromoCode(promoInput);
+    setCheckingPromo(false);
+    if (result.ok) {
+      setPromo({ code: result.code, percent: result.discountPercent });
+      setPromoInput("");
+    } else {
+      setPromo(null);
+      setPromoError(result.error);
+    }
+  }
 
   // Close, then reset to the cart view once the slide-out has finished.
   const close = () => {
@@ -76,6 +102,7 @@ export function CartDrawer() {
       customerName: String(form.get("name") ?? ""),
       phone: String(form.get("phone") ?? ""),
       items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+      promoCode: promo?.code ?? null,
     });
 
     setPending(false);
@@ -84,6 +111,7 @@ export function CartDrawer() {
       return;
     }
 
+    setPromo(null);
     setOrder(result);
     setStep("done");
     clearCart();
@@ -224,10 +252,38 @@ export function CartDrawer() {
             </ul>
 
             <footer className="border-t border-white/10 px-6 py-6">
-              <div className="flex items-baseline justify-between">
-                <span className="text-sm uppercase tracking-[0.2em] text-offwhite/60">Subtotal</span>
-                <span className="font-display text-4xl leading-none text-gold">{formatRand(subtotal)}</span>
-              </div>
+              {promo && step === "details" ? (
+                <dl className="space-y-1.5">
+                  <div className="flex items-baseline justify-between text-sm text-offwhite/60">
+                    <dt className="uppercase tracking-[0.2em]">Subtotal</dt>
+                    <dd>{formatRand(subtotal)}</dd>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-emerald-400">
+                    <dt className="flex items-center gap-2">
+                      <Tag className="size-3.5" />
+                      {promo.code} ({promo.percent}% off)
+                      <button
+                        type="button"
+                        onClick={() => setPromo(null)}
+                        aria-label={`Remove promo code ${promo.code}`}
+                        className="inline-flex size-6 items-center justify-center rounded-full text-offwhite/40 transition-colors hover:text-red-400"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </dt>
+                    <dd>−{formatRand(discount)}</dd>
+                  </div>
+                  <div className="flex items-baseline justify-between pt-1">
+                    <dt className="text-sm uppercase tracking-[0.2em] text-offwhite/60">Total</dt>
+                    <dd className="font-display text-4xl leading-none text-gold">{formatRand(total)}</dd>
+                  </div>
+                </dl>
+              ) : (
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm uppercase tracking-[0.2em] text-offwhite/60">Subtotal</span>
+                  <span className="font-display text-4xl leading-none text-gold">{formatRand(subtotal)}</span>
+                </div>
+              )}
 
               {step === "cart" ? (
                 <>
@@ -242,6 +298,45 @@ export function CartDrawer() {
                 </>
               ) : (
                 <form onSubmit={handleCheckout} className="mt-5 space-y-3">
+                  {!promo && (
+                    <div>
+                      <label htmlFor="checkout-promo" className="text-xs font-medium uppercase tracking-[0.15em] text-offwhite/60">
+                        Promo code
+                      </label>
+                      <div className="mt-1.5 flex gap-2">
+                        <input
+                          id="checkout-promo"
+                          value={promoInput}
+                          onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                          onKeyDown={(e) => {
+                            // Enter applies the code instead of placing the order.
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              applyPromo();
+                            }
+                          }}
+                          maxLength={24}
+                          autoComplete="off"
+                          placeholder="e.g. LEGACY20"
+                          className="min-w-0 flex-1 rounded-xl border border-white/10 bg-charcoal-soft px-4 py-3 font-mono uppercase tracking-wider text-offwhite placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-offwhite/30 focus:border-gold/60 focus:outline-none focus:ring-2 focus:ring-gold/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={applyPromo}
+                          disabled={checkingPromo || !promoInput.trim()}
+                          className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gold/60 px-4 text-sm font-semibold text-gold transition-colors hover:bg-gold hover:text-charcoal disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-gold"
+                        >
+                          {checkingPromo && <Loader2 className="size-4 animate-spin" />}
+                          Apply
+                        </button>
+                      </div>
+                      {promoError && (
+                        <p role="alert" className="mt-1.5 text-xs text-red-300">
+                          {promoError}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div>
                     <label htmlFor="checkout-name" className="text-xs font-medium uppercase tracking-[0.15em] text-offwhite/60">
                       Your name
@@ -342,9 +437,17 @@ function OrderConfirmation({ order, onClose }: { order: PlacedOrder; onClose: ()
             <span className="text-offwhite">{formatRand(line.line_total)}</span>
           </li>
         ))}
+        {order.discount > 0 && (
+          <li className="flex justify-between gap-4 py-3 text-sm text-emerald-400">
+            <span>Promo {order.promoCode}</span>
+            <span>−{formatRand(order.discount)}</span>
+          </li>
+        )}
         <li className="flex items-baseline justify-between py-3">
-          <span className="text-xs uppercase tracking-[0.2em] text-offwhite/60">Subtotal</span>
-          <span className="font-display text-3xl leading-none text-gold">{formatRand(order.subtotal)}</span>
+          <span className="text-xs uppercase tracking-[0.2em] text-offwhite/60">
+            {order.discount > 0 ? "Total" : "Subtotal"}
+          </span>
+          <span className="font-display text-3xl leading-none text-gold">{formatRand(order.total)}</span>
         </li>
       </ul>
 

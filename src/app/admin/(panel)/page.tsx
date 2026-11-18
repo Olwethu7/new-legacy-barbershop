@@ -14,7 +14,8 @@ const stats = [
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
-  const name = admin.email.split("@")[0];
+  // First + last name from the admin's profile (supabase/migrations/004), falling back to the email name.
+  const name = admin.displayName;
 
   return (
     <div className="p-6 sm:p-10">

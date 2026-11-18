@@ -45,14 +45,21 @@ export function ProductCard({ product }: { product: Product }) {
               Featured
             </span>
           )}
-          {soldOut && (
-            <span className="rounded-full bg-charcoal/90 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-offwhite">
-              Sold Out
+          {product.stock_status === "in_stock" && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white shadow-sm shadow-emerald-900/20">
+              <span className="size-1.5 rounded-full bg-white/90" />
+              In Stock
             </span>
           )}
           {lowStock && (
             <span className="rounded-full bg-amber-400 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-charcoal">
               Only a few left
+            </span>
+          )}
+          {soldOut && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white shadow-sm shadow-red-900/20">
+              <span className="size-1.5 rounded-full bg-white/90" />
+              Out of Stock
             </span>
           )}
         </div>
