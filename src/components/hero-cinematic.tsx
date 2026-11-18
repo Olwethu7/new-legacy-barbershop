@@ -15,7 +15,7 @@ import m3 from "../../public/gallery/M3.webp";
  *   0.0s – 3.0s   Idle: portrait.
  *   3.0s – 4.6s   Portrait dims to black (brightness 100% → 0) and fades.
  *   3.4s – 5.2s   Collage arrives:
- *                   desktop  M1 + M2 drop from the top, M3 rises from the bottom
+ *                   desktop  M1 slides from the top-left, M2 from the top-right, M3 up from the bottom
  *                   mobile   M1 slides from the left, M2 from the right, M3 pops up in the centre
  *   5.2s – 8.0s   Hold.
  *   8.0s – 9.4s   Collage leaves the way it came.
@@ -71,7 +71,6 @@ type Shot = {
   from: { desktop: Offscreen; mobile: Offscreen };
   /** Seconds: starts arriving, has landed, starts leaving, has left. */
   timing: { desktop: [number, number, number, number]; mobile: [number, number, number, number] };
-  imageClassName?: string;
 };
 
 const shots: Shot[] = [
@@ -80,9 +79,9 @@ const shots: Shot[] = [
     src: m1,
     className: "left-[3%] top-0 h-[54%] w-[45%]",
     tilt: -5,
-    from: { desktop: { y: "-160%", rotate: -14 }, mobile: { x: "-150%", rotate: -12 } },
+    // Desktop: in from slightly up and to the left.
+    from: { desktop: { x: "-35%", y: "-45%", rotate: -14 }, mobile: { x: "-150%", rotate: -12 } },
     timing: { desktop: [3.4, 5.0, 8.0, 9.3], mobile: [3.4, 5.0, 8.0, 9.3] },
-    imageClassName: "object-[50%_25%]",
   },
   {
     key: "m2",
@@ -90,7 +89,8 @@ const shots: Shot[] = [
     // Same size and top edge as M1: the pair sits perfectly side by side.
     className: "right-[3%] top-0 h-[54%] w-[45%]",
     tilt: 4,
-    from: { desktop: { y: "-160%", rotate: 12 }, mobile: { x: "150%", rotate: 12 } },
+    // Desktop: in from slightly up and to the right.
+    from: { desktop: { x: "35%", y: "-45%", rotate: 12 }, mobile: { x: "150%", rotate: 12 } },
     timing: { desktop: [3.5, 5.1, 8.1, 9.4], mobile: [3.4, 5.0, 8.0, 9.3] },
   },
   {
@@ -99,7 +99,8 @@ const shots: Shot[] = [
     // Centred under the pair; its top overlaps them and its bottom drops ~10% lower, so it never lines up.
     className: "left-1/2 top-[42%] z-10 h-[52%] w-[50%] -translate-x-1/2",
     tilt: -2,
-    from: { desktop: { y: "170%", rotate: 10 }, mobile: { scale: 0.55, rotate: -2 } },
+    // Desktop: straight up from below.
+    from: { desktop: { y: "60%", rotate: 10 }, mobile: { scale: 0.55, rotate: -2 } },
     // On mobile M3 takes its time: a slow pop once the pair has arrived.
     timing: { desktop: [3.6, 5.2, 8.0, 9.3], mobile: [4.0, 5.6, 8.0, 9.2] },
   },
@@ -161,12 +162,21 @@ export function HeroCinematic() {
             <div key={shot.key} className={`absolute ${shot.className}`}>
               <motion.div className="size-full" initial={initial} animate={animate} transition={transition}>
                 <div className="relative size-full overflow-hidden rounded-2xl bg-charcoal-soft shadow-[0_30px_60px_-18px_rgba(0,0,0,0.85),0_0_0_1px_rgba(201,162,39,0.45)]">
+                  {/* Same treatment for all three: the whole photo, never cropped or zoomed,
+                      over a blurred copy of itself so the card has no empty bars. */}
                   <Image
                     src={shot.src}
                     alt=""
                     fill
                     sizes="(min-width: 1024px) 280px, (min-width: 640px) 220px, 170px"
-                    className={`object-cover ${shot.imageClassName ?? ""}`}
+                    className="scale-110 object-cover opacity-60 blur-xl"
+                  />
+                  <Image
+                    src={shot.src}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 280px, (min-width: 640px) 220px, 170px"
+                    className="object-contain"
                   />
                   {/* Hairline + soft sheen so they read as printed photos */}
                   <span className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
