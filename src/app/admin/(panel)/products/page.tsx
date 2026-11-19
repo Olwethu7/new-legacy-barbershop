@@ -21,11 +21,11 @@ export default async function AdminProductsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="p-6 sm:p-10">
+    <div className="px-4 py-6 sm:p-10">
       <FadeIn className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Shop</p>
-          <h1 className="mt-2 font-display text-5xl tracking-wide text-charcoal sm:text-6xl">Products</h1>
+          <h1 className="mt-2 font-display text-4xl tracking-wide text-charcoal sm:text-6xl">Products</h1>
           <p className="mt-1 text-charcoal/60">
             {products ? `${products.length} ${products.length === 1 ? "product" : "products"} in your shop` : " "}
           </p>

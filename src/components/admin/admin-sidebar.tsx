@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Images, LayoutDashboard, Menu, MessageSquare, Package, ShoppingCart, Ticket, X } from "lucide-react";
+import { ExternalLink, Gift, Images, LayoutDashboard, Menu, MessageSquare, Package, ShoppingCart, Ticket, X } from "lucide-react";
 import { EASE_LUXE } from "@/lib/motion";
 import { LogoutButton } from "@/components/admin/logout-button";
 
@@ -15,6 +15,7 @@ const links = [
   { href: "/admin/gallery", label: "Gallery", icon: Images },
   { href: "/admin/communications", label: "Communications", icon: MessageSquare },
   { href: "/admin/promo-codes", label: "Promo Codes", icon: Ticket },
+  { href: "/admin/referrals", label: "Referrals", icon: Gift },
 ];
 
 export function AdminSidebar() {

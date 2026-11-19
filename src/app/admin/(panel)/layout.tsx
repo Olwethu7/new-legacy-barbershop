@@ -5,9 +5,11 @@ import { requireAdmin } from "@/lib/auth";
 /** Protected admin area: sidebar + login check. */
 export default function AdminPanelLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-1 flex-col bg-offwhite lg:flex-row">
+    <div className="flex min-h-svh w-full min-w-0 flex-1 flex-col bg-offwhite lg:flex-row">
       <AdminSidebar />
-      <main className="min-w-0 flex-1">
+      {/* min-w-0 lets wide content shrink instead of pushing the page sideways on phones;
+          overflow-x-clip is a safety net that (unlike hidden) doesn't break sticky elements. */}
+      <main className="min-w-0 flex-1 overflow-x-clip">
         <Suspense fallback={<PanelSkeleton />}>
           <AdminGate>{children}</AdminGate>
         </Suspense>
@@ -24,7 +26,7 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
 
 function PanelSkeleton() {
   return (
-    <div className="space-y-6 p-6 sm:p-10" aria-busy="true" aria-label="Loading">
+    <div className="space-y-6 px-4 py-6 sm:p-10" aria-busy="true" aria-label="Loading">
       <div className="h-10 w-64 animate-pulse rounded-lg bg-charcoal/10" />
       <div className="grid gap-5 sm:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (

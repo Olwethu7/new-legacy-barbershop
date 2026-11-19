@@ -14,6 +14,10 @@ export type ProfileRow = {
   referral_code: string;
   referred_by: string | null;
   marketing_opt_in: boolean;
+  /** Points towards the next referral reward (migration 005). Resets after each reward. */
+  referral_points: number;
+  /** 20% off the next haircut, earned with a referral reward (migration 005). */
+  eligible_for_service_discount: boolean;
   created_at: string;
 };
 
@@ -40,7 +44,21 @@ export type ReferralRow = {
   referrer_id: string;
   referred_id: string;
   reward_promo_id: string | null;
+  /** When this friend earned their referrer a point (migration 005); null = not yet. */
+  point_awarded_at: string | null;
+  point_source: "online" | "in_store" | null;
   created_at: string;
+};
+
+/** In-store Referral Proof Codes (migration 005). Valid for 7 days after created_at. */
+export type ReferralClaimRow = {
+  id: string;
+  code: string;
+  referred_id: string;
+  referrer_id: string;
+  created_at: string;
+  claimed_at: string | null;
+  claimed_by: string | null;
 };
 
 export type MessageChannel = "sms" | "email" | "whatsapp";

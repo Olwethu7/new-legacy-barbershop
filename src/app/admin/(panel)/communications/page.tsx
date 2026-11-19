@@ -57,11 +57,11 @@ export default async function AdminCommunicationsPage() {
   const providers = MESSAGE_CHANNELS.map((c) => ({ ...c, connected: isChannelConfigured(c.id) }));
 
   return (
-    <div className="p-6 sm:p-10">
+    <div className="px-4 py-6 sm:p-10">
       <FadeIn>
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Marketing</p>
-        <h1 className="mt-2 font-display text-5xl tracking-wide text-charcoal sm:text-6xl">Communications</h1>
-        <p className="mt-1 text-charcoal/60">
+        <h1 className="mt-2 font-display text-4xl tracking-wide text-charcoal sm:text-6xl">Communications</h1>
+        <p className="mt-1 text-sm text-charcoal/60 sm:text-base">
           {customers.length} registered {customers.length === 1 ? "customer" : "customers"} · send reminders, thank-yous
           and announcements.
         </p>

@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Gift, LayoutDashboard, Package, ShoppingBag, Ticket, UserRound, Users } from "lucide-react";
+import { BadgeCheck, Gift, LayoutDashboard, Package, Scissors, ShoppingBag, Ticket, UserRound, Users } from "lucide-react";
 import { CustomerLogoutButton } from "@/components/account/customer-logout-button";
 import { ProfileForm } from "@/components/account/profile-form";
 import { ReferralLink } from "@/components/account/referral-link";
+import { ReferralProgress } from "@/components/account/referral-progress";
+import { ReferralProofCode } from "@/components/account/referral-proof-code";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { requireUser } from "@/lib/auth";
-import type { OrderRow, PromoCodeRow } from "@/lib/database.types";
+import type { OrderRow, PromoCodeRow, ReferralClaimRow } from "@/lib/database.types";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES, isOrderStatus } from "@/lib/order-status";
 import { PROMO_STATE_LABELS, PROMO_STATE_STYLES, promoState, shortDate } from "@/lib/promo";
+import { REFERRAL_POINTS_GOAL, REFERRAL_SERVICE_PERCENT, REFERRAL_SHOP_PERCENT } from "@/lib/referrals";
 import { formatRand } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,7 +35,7 @@ async function AccountDashboard() {
   const user = await requireUser();
   const supabase = await createClient();
 
-  const [roleRes, ordersRes, referralsRes, promosRes] = await Promise.all([
+  const [roleRes, ordersRes, referralsRes, promosRes, claimRes, myReferralRes] = await Promise.all([
     // The signed-in user's role, read straight from their profiles row. RLS only lets them read their own.
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle<{ role: string }>(),
     supabase
@@ -49,6 +52,20 @@ async function AccountDashboard() {
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false })
       .overrideTypes<PromoCodeRow[], { merge: false }>(),
+    // Latest in-store Referral Proof Code (only for customers who were referred). Migration 005.
+    supabase
+      .from("referral_claims")
+      .select("code, created_at, claimed_at")
+      .eq("referred_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle<Pick<ReferralClaimRow, "code" | "created_at" | "claimed_at">>(),
+    // Has this customer already earned their referrer a point (online order or in-store)?
+    supabase
+      .from("referrals")
+      .select("point_awarded_at")
+      .eq("referred_id", user.id)
+      .maybeSingle<{ point_awarded_at: string | null }>(),
   ]);
 
   const profile = user.profile;
@@ -58,6 +75,20 @@ async function AccountDashboard() {
   const firstName = profile?.first_name || user.email.split("@")[0];
   // Fails closed: any error, missing row or other role means no Admin Panel button.
   const isAdmin = !roleRes.error && roleRes.data?.role === "admin";
+
+  const points = profile?.referral_points ?? 0;
+  const haircutReward = profile?.eligible_for_service_discount === true;
+  const wasReferred = !!profile?.referred_by;
+  const latestClaim = claimRes.data;
+  const alreadyCredited = !!myReferralRes.data?.point_awarded_at;
+  const proofClaim =
+    alreadyCredited && !latestClaim?.claimed_at
+      ? { code: latestClaim?.code ?? "", createdAt: latestClaim?.created_at ?? "", claimed: true }
+      : latestClaim
+        ? { code: latestClaim.code, createdAt: latestClaim.created_at, claimed: !!latestClaim.claimed_at }
+        : null;
+  // Expiry is checked against this, then re-checked every minute in the browser.
+  const serverNow = requestTime();
 
   return (
     <>
@@ -108,9 +139,26 @@ async function AccountDashboard() {
                     <h2 className="font-display text-4xl tracking-wide">Refer a Friend</h2>
                   </div>
                   <p className="mt-4 max-w-xl text-sm leading-relaxed text-offwhite/65">
-                    Share your link. When a friend creates an account with it, you get a personal promo code for 10% off
-                    your next shop order.
+                    Share your link. You earn a point when a friend who signed up with it buys from the shop or visits us
+                    in-store. Every {REFERRAL_POINTS_GOAL} points unlocks {REFERRAL_SHOP_PERCENT}% off your next shop
+                    order and {REFERRAL_SERVICE_PERCENT}% off your next haircut.
                   </p>
+
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                    <ReferralProgress points={points} goal={REFERRAL_POINTS_GOAL} />
+                  </div>
+
+                  {haircutReward && (
+                    <div className="mt-4 flex items-start gap-3 rounded-2xl border border-gold/50 bg-gold/10 p-4">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold text-charcoal">
+                        <Scissors className="size-4" />
+                      </span>
+                      <p className="text-sm text-offwhite/80">
+                        <strong className="block text-gold">{REFERRAL_SERVICE_PERCENT}% off your next haircut</strong>
+                        Just mention it at the chair and we&apos;ll apply it.
+                      </p>
+                    </div>
+                  )}
                   {profile?.referral_code ? (
                     <div className="mt-6">
                       <ReferralLink code={profile.referral_code} />
@@ -139,6 +187,30 @@ async function AccountDashboard() {
                 </div>
               </article>
             </ScrollReveal>
+
+            {/* In-store Referral Proof Code: only for customers who signed up with a friend's link */}
+            {wasReferred && (
+              <ScrollReveal>
+                <article className="relative overflow-hidden rounded-3xl bg-charcoal-soft p-6 text-offwhite sm:p-8">
+                  <div aria-hidden="true" className="absolute -left-16 -bottom-16 size-48 rounded-full bg-gold/10 blur-3xl" />
+                  <div className="relative">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-11 items-center justify-center rounded-full border border-gold/60 text-gold">
+                        <BadgeCheck className="size-5" />
+                      </span>
+                      <h2 className="font-display text-3xl tracking-wide sm:text-4xl">Visiting In-Store?</h2>
+                    </div>
+                    <p className="mt-3 max-w-xl text-sm leading-relaxed text-offwhite/60">
+                      A friend referred you. Show this code at the shop so they get credit for your visit. Each code is
+                      valid for 7 days.
+                    </p>
+                    <div className="mt-5">
+                      <ReferralProofCode initial={proofClaim} serverNow={serverNow} />
+                    </div>
+                  </div>
+                </article>
+              </ScrollReveal>
+            )}
 
             {/* Order history */}
             <ScrollReveal>
@@ -207,7 +279,7 @@ async function AccountDashboard() {
                 <CardTitle icon={Ticket} title="My Promo Codes" />
                 {rewards.length === 0 ? (
                   <p className="mt-4 text-sm text-charcoal/55">
-                    Codes you earn from referrals appear here. Use them at checkout.
+                    Reward codes you earn from referral points appear here. Use them at checkout.
                   </p>
                 ) : (
                   <ul className="mt-5 space-y-3">
@@ -258,6 +330,11 @@ async function AccountDashboard() {
       </section>
     </>
   );
+}
+
+/** This Server Component renders once per request, so reading the clock here is safe. */
+function requestTime() {
+  return Date.now();
 }
 
 function CardTitle({ icon: Icon, title }: { icon: typeof Package; title: string }) {

@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 import { CartDrawer } from "@/components/cart-drawer";
 import { PageTransition } from "@/components/page-transition";
 import { SiteFooter } from "@/components/site-footer";
@@ -16,6 +17,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <SiteFooter />
       <WhatsAppFloat />
       <CartDrawer />
+      <Toaster position="top-center" closeButton toastOptions={{ style: { fontFamily: "var(--font-geist-sans)" } }} />
     </CartProvider>
   );
 }

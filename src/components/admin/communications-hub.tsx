@@ -122,10 +122,10 @@ export function CommunicationsHub({
   }
 
   return (
-    <div className="mt-8 space-y-8">
+    <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-8">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         {/* Recipients */}
-        <section className="flex flex-col rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm sm:p-6">
+        <section className="flex flex-col rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="flex items-center gap-2 font-display text-3xl tracking-wide text-charcoal">
             <Users className="size-5 text-gold" /> Recipients
           </h2>
@@ -138,7 +138,7 @@ export function CommunicationsHub({
                 role="radio"
                 aria-checked={audience === value}
                 onClick={() => setAudience(value)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                className={`min-w-0 truncate rounded-full px-2 py-2 text-xs font-semibold transition-colors sm:px-4 sm:text-sm ${
                   audience === value ? "bg-charcoal text-gold shadow" : "text-charcoal/60 hover:text-charcoal"
                 }`}
               >
@@ -169,7 +169,7 @@ export function CommunicationsHub({
                 return (
                   <li key={c.id}>
                     <label
-                      className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-gold/[0.04] ${
+                      className={`flex cursor-pointer items-center gap-3 px-3 py-3 transition-colors sm:px-4 hover:bg-gold/[0.04] ${
                         c.optedIn ? "" : "opacity-55"
                       }`}
                     >
@@ -199,7 +199,7 @@ export function CommunicationsHub({
         </section>
 
         {/* Composer */}
-        <section className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm sm:p-6">
+        <section className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="flex items-center gap-2 font-display text-3xl tracking-wide text-charcoal">
             <MessageSquare className="size-5 text-gold" /> Message
           </h2>
@@ -216,7 +216,7 @@ export function CommunicationsHub({
                     type="button"
                     onClick={() => setChannel(p.id)}
                     aria-pressed={active}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-sm font-semibold transition-all ${
+                    className={`flex min-w-0 flex-col items-center gap-1.5 rounded-xl border px-1 py-3 text-xs font-semibold transition-all sm:px-2 sm:text-sm ${
                       active
                         ? "border-gold bg-charcoal text-gold shadow-lg shadow-gold/10"
                         : "border-charcoal/10 text-charcoal/70 hover:border-gold/50"
@@ -224,7 +224,7 @@ export function CommunicationsHub({
                   >
                     <Icon className="size-5" />
                     {p.label}
-                    <span className={`text-[0.6rem] font-medium uppercase tracking-wider ${p.connected ? "text-emerald-500" : "text-charcoal/40"}`}>
+                    <span className={`text-center text-[0.55rem] font-medium uppercase leading-tight sm:text-[0.6rem] sm:tracking-wider ${p.connected ? "text-emerald-500" : "text-charcoal/40"}`}>
                       {p.connected ? "Connected" : "Not connected"}
                     </span>
                   </button>
@@ -248,7 +248,7 @@ export function CommunicationsHub({
                   type="button"
                   onClick={() => chooseTemplate(t.id)}
                   aria-pressed={templateId === t.id}
-                  className={`rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 sm:px-4 sm:py-2 sm:text-sm ring-inset transition-colors ${
                     templateId === t.id ? "bg-gold text-charcoal ring-gold" : "text-charcoal/70 ring-charcoal/15 hover:ring-gold/60"
                   }`}
                 >
@@ -312,7 +312,7 @@ export function CommunicationsHub({
             type="button"
             onClick={handleSend}
             disabled={sending || !body.trim() || body.length > MAX_MESSAGE_LENGTH}
-            className="btn-luxe mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-4 font-semibold text-charcoal hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-luxe mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-4 py-4 text-sm font-semibold sm:px-6 sm:text-base text-charcoal hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-60"
           >
             {sending ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
             {sending ? "Sending…" : `Send to ${recipientCount} ${recipientCount === 1 ? "customer" : "customers"}`}
@@ -321,37 +321,43 @@ export function CommunicationsHub({
       </div>
 
       {/* Log */}
-      <section className="rounded-2xl border border-charcoal/10 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
         <h2 className="font-display text-3xl tracking-wide text-charcoal">Message Log</h2>
         <p className="text-sm text-charcoal/55">The last 100 messages.</p>
         {log.length === 0 ? (
           <p className="mt-6 rounded-xl bg-offwhite p-6 text-center text-sm text-charcoal/55">Nothing sent yet.</p>
         ) : (
-          <ul className="mt-5 divide-y divide-charcoal/5">
+          <ul className="mt-4 divide-y divide-charcoal/5 sm:mt-5">
             {log.map((m) => {
               const Icon = CHANNEL_ICONS[m.channel];
               const status = STATUS_STYLES[m.status];
               const StatusIcon = status.icon;
               return (
-                <li key={m.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:gap-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-charcoal text-gold">
+                <li key={m.id} className="flex items-start gap-3 py-4 sm:gap-4">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-charcoal text-gold sm:size-9">
                     <Icon className="size-4" />
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-charcoal">
-                      {m.recipient}
-                      <span className="ml-2 font-normal text-charcoal/50">{m.contact}</span>
-                    </p>
-                    {m.subject && <p className="text-sm font-medium text-charcoal/80">{m.subject}</p>}
-                    <p className="line-clamp-2 text-sm text-charcoal/60">{m.body}</p>
-                    {m.note && <p className="mt-0.5 text-xs text-charcoal/45">{m.note}</p>}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${status.className}`}>
-                      <StatusIcon className="size-3.5" />
-                      {status.label}
-                    </span>
-                    <span className="text-xs text-charcoal/45">{m.date}</span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-charcoal">
+                        <span className="break-words">{m.recipient}</span>
+                        {m.contact && (
+                          <span className="block break-all text-xs font-normal text-charcoal/50 sm:ml-2 sm:inline sm:text-sm">
+                            {m.contact}
+                          </span>
+                        )}
+                      </p>
+                      {m.subject && <p className="break-words text-sm font-medium text-charcoal/80">{m.subject}</p>}
+                      <p className="line-clamp-2 break-words text-sm text-charcoal/60">{m.body}</p>
+                      {m.note && <p className="mt-0.5 break-words text-xs text-charcoal/45">{m.note}</p>}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 sm:flex-col sm:items-end sm:gap-1">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${status.className}`}>
+                        <StatusIcon className="size-3.5" />
+                        {status.label}
+                      </span>
+                      <span className="text-xs text-charcoal/45">{m.date}</span>
+                    </div>
                   </div>
                 </li>
               );
