@@ -379,18 +379,22 @@ function CardTitle({ icon: Icon, title }: { icon: typeof Package; title: string 
   );
 }
 
+/**
+ * Shown while the account loads. Deliberately light and see-through (no solid charcoal band):
+ * on phones a dark block here looked like a giant black box under the header.
+ */
 function AccountSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading your account">
-      <div className="bg-charcoal">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          <div className="h-4 w-32 animate-pulse rounded bg-white/10" />
-          <div className="mt-6 h-16 w-2/3 max-w-lg animate-pulse rounded-lg bg-white/10" />
-        </div>
+    <div aria-busy="true" aria-label="Loading your account" className="bg-transparent">
+      <span className="sr-only">Loading your account…</span>
+      <div className="mx-auto max-w-7xl px-4 pb-6 pt-10 sm:px-6 sm:pt-16 lg:px-8">
+        <div className="h-3 w-28 animate-pulse rounded-full bg-charcoal/10" />
+        <div className="mt-5 h-10 w-3/4 max-w-md animate-pulse rounded-lg bg-charcoal/[0.07] sm:h-14" />
+        <div className="mt-3 h-3 w-40 animate-pulse rounded-full bg-charcoal/[0.06]" />
       </div>
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-3 lg:px-8">
-        <div className="h-72 animate-pulse rounded-3xl bg-charcoal/10 lg:col-span-2" />
-        <div className="h-72 animate-pulse rounded-3xl bg-charcoal/5" />
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 pb-12 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <div className="h-64 animate-pulse rounded-3xl border border-charcoal/5 bg-charcoal/[0.04] lg:col-span-2" />
+        <div className="h-64 animate-pulse rounded-3xl border border-charcoal/5 bg-charcoal/[0.03]" />
       </div>
     </div>
   );
