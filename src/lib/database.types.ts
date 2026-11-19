@@ -14,10 +14,13 @@ export type ProfileRow = {
   referral_code: string;
   referred_by: string | null;
   marketing_opt_in: boolean;
-  /** Points towards the next referral reward (migration 005). Resets after each reward. */
-  referral_points: number;
-  /** 20% off the next haircut, earned with a referral reward (migration 005). */
-  eligible_for_service_discount: boolean;
+  /** System A (migration 006): friends' online purchases. 5 = a 10% shop promo code, then resets. */
+  shop_points: number;
+  /** System B (migration 006): friends' confirmed in-store visits. 5 = 20% off a haircut, then resets. */
+  service_points: number;
+  /** 20% off the next haircut/service, valid until service_discount_expires_at. */
+  has_service_discount: boolean;
+  service_discount_expires_at: string | null;
   created_at: string;
 };
 
@@ -44,19 +47,20 @@ export type ReferralRow = {
   referrer_id: string;
   referred_id: string;
   reward_promo_id: string | null;
-  /** When this friend earned their referrer a point (migration 005); null = not yet. */
-  point_awarded_at: string | null;
-  point_source: "online" | "in_store" | null;
+  /** When this friend earned their referrer a shop point / service point (migration 006); null = not yet. */
+  shop_point_at: string | null;
+  service_point_at: string | null;
   created_at: string;
 };
 
-/** In-store Referral Proof Codes (migration 005). Valid for 7 days after created_at. */
+/** In-store Proof Codes (migrations 005/006), e.g. SRV-8X2BK7. Valid for 7 days (expires_at). */
 export type ReferralClaimRow = {
   id: string;
   code: string;
   referred_id: string;
   referrer_id: string;
   created_at: string;
+  expires_at: string;
   claimed_at: string | null;
   claimed_by: string | null;
 };

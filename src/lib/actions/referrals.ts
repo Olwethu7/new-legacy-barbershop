@@ -5,13 +5,13 @@ import { requireAdmin, requireUser } from "@/lib/auth";
 import { PROOF_CODE_RE, normalizeProofCode } from "@/lib/referrals";
 import { createClient } from "@/lib/supabase/server";
 
-const MIGRATION_HINT = "Has supabase/migrations/005_referral_points.sql been run?";
+const MIGRATION_HINT = "Has supabase/migrations/006_split_referral_rewards.sql been run?";
 
 // ---------- Customer ----------
 
-export type ProofCodeResult = { ok: true; code: string; createdAt: string } | { ok: false; error: string };
+export type ProofCodeResult = { ok: true; code: string; expiresAt: string } | { ok: false; error: string };
 
-/** The referred friend's in-store proof code. Reuses a still-valid one, otherwise makes a new one. */
+/** The referred friend's In-Store Proof Code (made at sign-up). Returns the valid one, or a new one if it expired. */
 export async function generateReferralProofCode(): Promise<ProofCodeResult> {
   await requireUser();
   const supabase = await createClient();
@@ -23,17 +23,17 @@ export async function generateReferralProofCode(): Promise<ProofCodeResult> {
       return { ok: false, error: "Proof codes are for customers who signed up with a friend's referral link." };
     }
     if (error.message.includes("ALREADY_CREDITED")) {
-      return { ok: false, error: "Your referral has already been confirmed. Thank you!" };
+      return { ok: false, error: "Your in-store visit has already been confirmed. Thank you!" };
     }
     console.error("create_referral_proof_code:", error.message);
     return { ok: false, error: "Couldn't create a code right now. Please try again." };
   }
 
-  const row = (data as { code: string; created_at: string }[] | null)?.[0];
+  const row = (data as { code: string; expires_at: string }[] | null)?.[0];
   if (!row) return { ok: false, error: "Couldn't create a code right now. Please try again." };
 
   revalidatePath("/account");
-  return { ok: true, code: row.code, createdAt: row.created_at };
+  return { ok: true, code: row.code, expiresAt: row.expires_at };
 }
 
 // ---------- Admin ----------
@@ -50,13 +50,13 @@ type ConfirmRow = {
   rewarded: boolean;
 };
 
-/** Confirms a Referral Proof Code shown in-store and gives the referrer their point. */
+/** Confirms an In-Store Proof Code and gives the referrer 1 service point (System B). */
 export async function confirmReferralCode(rawCode: string): Promise<ConfirmReferralResult> {
   await requireAdmin();
 
   const code = normalizeProofCode(rawCode);
   if (!PROOF_CODE_RE.test(code)) {
-    return { ok: false, error: "That doesn't look like a Referral Proof Code (e.g. REF-8X2BK7)." };
+    return { ok: false, error: "That doesn't look like an In-Store Proof Code (e.g. SRV-8X2BK7)." };
   }
 
   const supabase = await createClient();
@@ -87,7 +87,7 @@ export async function confirmReferralCode(rawCode: string): Promise<ConfirmRefer
     case "already_credited":
       return {
         ok: false,
-        error: `${row.friend_name ?? "This customer"} has already earned ${row.referrer_name ?? "their referrer"} a point.`,
+        error: `${row.friend_name ?? "This customer"}'s in-store visit was already counted for ${row.referrer_name ?? "their referrer"}.`,
       };
     default:
       return { ok: false, error: `${code} wasn't found. Check the code and try again.` };

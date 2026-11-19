@@ -122,10 +122,10 @@ export function CommunicationsHub({
   }
 
   return (
-    <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-8">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <div className="mt-6 w-full min-w-0 max-w-full space-y-6 sm:mt-8 sm:space-y-8">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         {/* Recipients */}
-        <section className="flex flex-col rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
+        <section className="flex min-w-0 flex-col rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="flex items-center gap-2 font-display text-3xl tracking-wide text-charcoal">
             <Users className="size-5 text-gold" /> Recipients
           </h2>
@@ -199,14 +199,14 @@ export function CommunicationsHub({
         </section>
 
         {/* Composer */}
-        <section className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
+        <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="flex items-center gap-2 font-display text-3xl tracking-wide text-charcoal">
             <MessageSquare className="size-5 text-gold" /> Message
           </h2>
 
           <fieldset className="mt-4">
             <legend className="text-xs font-semibold uppercase tracking-[0.15em] text-charcoal/55">Delivery method</legend>
-            <div className="mt-2 grid grid-cols-3 gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               {providers.map((p) => {
                 const Icon = CHANNEL_ICONS[p.id];
                 const active = channel === p.id;
@@ -216,7 +216,7 @@ export function CommunicationsHub({
                     type="button"
                     onClick={() => setChannel(p.id)}
                     aria-pressed={active}
-                    className={`flex min-w-0 flex-col items-center gap-1.5 rounded-xl border px-1 py-3 text-xs font-semibold transition-all sm:px-2 sm:text-sm ${
+                    className={`flex min-w-[5.5rem] flex-1 basis-0 flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-semibold transition-all sm:text-sm ${
                       active
                         ? "border-gold bg-charcoal text-gold shadow-lg shadow-gold/10"
                         : "border-charcoal/10 text-charcoal/70 hover:border-gold/50"
@@ -248,7 +248,7 @@ export function CommunicationsHub({
                   type="button"
                   onClick={() => chooseTemplate(t.id)}
                   aria-pressed={templateId === t.id}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 sm:px-4 sm:py-2 sm:text-sm ring-inset transition-colors ${
+                  className={`max-w-full rounded-full px-3 py-1.5 text-left text-xs font-medium ring-1 [overflow-wrap:anywhere] sm:px-4 sm:py-2 sm:text-sm ring-inset transition-colors ${
                     templateId === t.id ? "bg-gold text-charcoal ring-gold" : "text-charcoal/70 ring-charcoal/15 hover:ring-gold/60"
                   }`}
                 >
@@ -291,7 +291,7 @@ export function CommunicationsHub({
               }}
               rows={6}
               placeholder="Type your message…"
-              className="mt-1.5 w-full resize-y rounded-xl border border-charcoal/15 bg-offwhite/60 px-4 py-3 text-sm leading-relaxed focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+              className="mt-1.5 block w-full min-w-0 max-w-full resize-y rounded-xl border border-charcoal/15 bg-offwhite/60 px-4 py-3 text-sm leading-relaxed focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
             />
             <p className="mt-1 text-xs text-charcoal/45">
               Use <code className="rounded bg-offwhite px-1">{"{first_name}"}</code> and{" "}
@@ -302,7 +302,7 @@ export function CommunicationsHub({
           {body.trim() && (
             <div className="mt-5 rounded-xl bg-charcoal p-4 text-sm leading-relaxed text-offwhite/85">
               <p className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gold">Preview</p>
-              <p className="whitespace-pre-wrap break-words">
+              <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">
                 {fillTemplate(body, { firstName: previewName, bookingLink: whatsappBookingUrl() })}
               </p>
             </div>
@@ -321,7 +321,7 @@ export function CommunicationsHub({
       </div>
 
       {/* Log */}
-      <section className="rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
+      <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-white p-4 shadow-sm sm:p-6">
         <h2 className="font-display text-3xl tracking-wide text-charcoal">Message Log</h2>
         <p className="text-sm text-charcoal/55">The last 100 messages.</p>
         {log.length === 0 ? (
@@ -340,16 +340,16 @@ export function CommunicationsHub({
                   <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-charcoal">
-                        <span className="break-words">{m.recipient}</span>
+                        <span className="[overflow-wrap:anywhere]">{m.recipient}</span>
                         {m.contact && (
-                          <span className="block break-all text-xs font-normal text-charcoal/50 sm:ml-2 sm:inline sm:text-sm">
+                          <span className="block text-xs font-normal text-charcoal/50 [overflow-wrap:anywhere] sm:ml-2 sm:inline sm:text-sm">
                             {m.contact}
                           </span>
                         )}
                       </p>
-                      {m.subject && <p className="break-words text-sm font-medium text-charcoal/80">{m.subject}</p>}
-                      <p className="line-clamp-2 break-words text-sm text-charcoal/60">{m.body}</p>
-                      {m.note && <p className="mt-0.5 break-words text-xs text-charcoal/45">{m.note}</p>}
+                      {m.subject && <p className="[overflow-wrap:anywhere] text-sm font-medium text-charcoal/80">{m.subject}</p>}
+                      <p className="line-clamp-2 text-sm text-charcoal/60 [overflow-wrap:anywhere]">{m.body}</p>
+                      {m.note && <p className="mt-0.5 [overflow-wrap:anywhere] text-xs text-charcoal/45">{m.note}</p>}
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 sm:flex-col sm:items-end sm:gap-1">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${status.className}`}>

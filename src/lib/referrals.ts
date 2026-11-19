@@ -1,25 +1,27 @@
 // Referral rules shared by the customer dashboard and the admin pages.
-// Keep in sync with supabase/migrations/005_referral_points.sql.
+// Keep in sync with supabase/migrations/006_split_referral_rewards.sql.
+//
+//   A. Store:   friend's online purchase  -> 1 shop point.    5 points -> 10% shop promo code (30 days).
+//   B. Service: friend's in-store visit   -> 1 service point. 5 points -> 20% off a haircut (15 days).
 
-/** Points needed for a reward (referral_points_goal() in SQL). */
+/** Points needed for a reward, in both systems (referral_points_goal() in SQL). */
 export const REFERRAL_POINTS_GOAL = 5;
-/** Shop discount on the reward promo code. */
-export const REFERRAL_SHOP_PERCENT = 10;
-/** Haircut discount that comes with each reward. */
-export const REFERRAL_SERVICE_PERCENT = 20;
 
-/** A Referral Proof Code is valid for 7 days after it is created. */
-export const PROOF_CODE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const SHOP_REWARD_PERCENT = 10;
+export const SHOP_REWARD_DAYS = 30;
 
-/** "REF-" + 6 characters from the same alphabet as generate_code() (no 0/O/1/I). */
-export const PROOF_CODE_RE = /^REF-[A-HJ-NP-Z2-9]{6}$/;
+export const SERVICE_REWARD_PERCENT = 20;
+export const SERVICE_REWARD_DAYS = 15;
 
-/** Accepts "ref-8x2bk7", "REF 8X2BK7" or just "8X2BK7" and returns "REF-8X2BK7". */
+/** In-store Proof Codes are valid for 7 days. */
+export const PROOF_CODE_DAYS = 7;
+
+/** "SRV-" + 6 characters from generate_code()'s alphabet (no 0/O/1/I). Older codes from 005 start with "REF-". */
+export const PROOF_CODE_RE = /^(SRV|REF)-[A-HJ-NP-Z2-9]{6}$/;
+
+/** Accepts "srv-8x2bk7", "SRV 8X2BK7" or just "8X2BK7" and returns "SRV-8X2BK7". */
 export function normalizeProofCode(value: unknown) {
   const raw = String(value ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  return `REF-${raw.length === 9 && raw.startsWith("REF") ? raw.slice(3) : raw}`;
-}
-
-export function proofCodeExpiresAt(createdAt: string) {
-  return new Date(createdAt).getTime() + PROOF_CODE_TTL_MS;
+  if (raw.length === 9 && (raw.startsWith("SRV") || raw.startsWith("REF"))) return `${raw.slice(0, 3)}-${raw.slice(3)}`;
+  return `SRV-${raw}`;
 }

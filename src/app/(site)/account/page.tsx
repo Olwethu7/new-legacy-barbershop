@@ -12,7 +12,14 @@ import { requireUser } from "@/lib/auth";
 import type { OrderRow, PromoCodeRow, ReferralClaimRow } from "@/lib/database.types";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES, isOrderStatus } from "@/lib/order-status";
 import { PROMO_STATE_LABELS, PROMO_STATE_STYLES, promoState, shortDate } from "@/lib/promo";
-import { REFERRAL_POINTS_GOAL, REFERRAL_SERVICE_PERCENT, REFERRAL_SHOP_PERCENT } from "@/lib/referrals";
+import {
+  PROOF_CODE_DAYS,
+  REFERRAL_POINTS_GOAL,
+  SERVICE_REWARD_DAYS,
+  SERVICE_REWARD_PERCENT,
+  SHOP_REWARD_DAYS,
+  SHOP_REWARD_PERCENT,
+} from "@/lib/referrals";
 import { formatRand } from "@/lib/services";
 import { createClient } from "@/lib/supabase/server";
 
@@ -55,17 +62,17 @@ async function AccountDashboard() {
     // Latest in-store Referral Proof Code (only for customers who were referred). Migration 005.
     supabase
       .from("referral_claims")
-      .select("code, created_at, claimed_at")
+      .select("code, expires_at, claimed_at")
       .eq("referred_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle<Pick<ReferralClaimRow, "code" | "created_at" | "claimed_at">>(),
-    // Has this customer already earned their referrer a point (online order or in-store)?
+      .maybeSingle<Pick<ReferralClaimRow, "code" | "expires_at" | "claimed_at">>(),
+    // Has this customer's in-store visit already been counted for their referrer?
     supabase
       .from("referrals")
-      .select("point_awarded_at")
+      .select("service_point_at")
       .eq("referred_id", user.id)
-      .maybeSingle<{ point_awarded_at: string | null }>(),
+      .maybeSingle<{ service_point_at: string | null }>(),
   ]);
 
   const profile = user.profile;
@@ -76,19 +83,22 @@ async function AccountDashboard() {
   // Fails closed: any error, missing row or other role means no Admin Panel button.
   const isAdmin = !roleRes.error && roleRes.data?.role === "admin";
 
-  const points = profile?.referral_points ?? 0;
-  const haircutReward = profile?.eligible_for_service_discount === true;
+  // Expiry is checked against this, then counted down live in the browser.
+  const serverNow = requestTime();
+
+  const shopPoints = profile?.shop_points ?? 0;
+  const servicePoints = profile?.service_points ?? 0;
+  const haircutExpires = profile?.service_discount_expires_at ? new Date(profile.service_discount_expires_at) : null;
+  const haircutReward = profile?.has_service_discount === true && !!haircutExpires && haircutExpires.getTime() > serverNow;
   const wasReferred = !!profile?.referred_by;
   const latestClaim = claimRes.data;
-  const alreadyCredited = !!myReferralRes.data?.point_awarded_at;
+  const visitCounted = !!myReferralRes.data?.service_point_at;
   const proofClaim =
-    alreadyCredited && !latestClaim?.claimed_at
-      ? { code: latestClaim?.code ?? "", createdAt: latestClaim?.created_at ?? "", claimed: true }
+    visitCounted || latestClaim?.claimed_at
+      ? { code: latestClaim?.code ?? "", expiresAt: latestClaim?.expires_at ?? "", claimed: true }
       : latestClaim
-        ? { code: latestClaim.code, createdAt: latestClaim.created_at, claimed: !!latestClaim.claimed_at }
+        ? { code: latestClaim.code, expiresAt: latestClaim.expires_at, claimed: false }
         : null;
-  // Expiry is checked against this, then re-checked every minute in the browser.
-  const serverNow = requestTime();
 
   return (
     <>
@@ -139,13 +149,33 @@ async function AccountDashboard() {
                     <h2 className="font-display text-4xl tracking-wide">Refer a Friend</h2>
                   </div>
                   <p className="mt-4 max-w-xl text-sm leading-relaxed text-offwhite/65">
-                    Share your link. You earn a point when a friend who signed up with it buys from the shop or visits us
-                    in-store. Every {REFERRAL_POINTS_GOAL} points unlocks {REFERRAL_SHOP_PERCENT}% off your next shop
-                    order and {REFERRAL_SERVICE_PERCENT}% off your next haircut.
+                    Share your link. Friends who sign up with it earn you points in two ways: when they buy from our
+                    online shop, and when they visit us in-store. Just signing up doesn&apos;t count.
                   </p>
 
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-                    <ReferralProgress points={points} goal={REFERRAL_POINTS_GOAL} />
+                  <div className="mt-6 grid grid-cols-1 gap-4">
+                    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                      <p className="mb-3 flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gold/80">
+                        <ShoppingBag className="size-3.5" /> Shop Rewards
+                      </p>
+                      <ReferralProgress
+                        points={shopPoints}
+                        goal={REFERRAL_POINTS_GOAL}
+                        label={`Points to ${SHOP_REWARD_PERCENT}% Shop Discount`}
+                        hint={`1 point each time a friend you referred completes their first online order. At ${REFERRAL_POINTS_GOAL} points you get a ${SHOP_REWARD_PERCENT}%-off shop code, valid ${SHOP_REWARD_DAYS} days.`}
+                      />
+                    </div>
+                    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                      <p className="mb-3 flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-gold/80">
+                        <Scissors className="size-3.5" /> Service Rewards
+                      </p>
+                      <ReferralProgress
+                        points={servicePoints}
+                        goal={REFERRAL_POINTS_GOAL}
+                        label="In-Store Visits"
+                        hint={`1 visit each time a friend you referred shows their In-Store Proof Code at the shop. At ${REFERRAL_POINTS_GOAL} visits you get ${SERVICE_REWARD_PERCENT}% off your next haircut, valid ${SERVICE_REWARD_DAYS} days.`}
+                      />
+                    </div>
                   </div>
 
                   {haircutReward && (
@@ -154,8 +184,9 @@ async function AccountDashboard() {
                         <Scissors className="size-4" />
                       </span>
                       <p className="text-sm text-offwhite/80">
-                        <strong className="block text-gold">{REFERRAL_SERVICE_PERCENT}% off your next haircut</strong>
-                        Just mention it at the chair and we&apos;ll apply it.
+                        <strong className="block text-gold">{SERVICE_REWARD_PERCENT}% off your next haircut</strong>
+                        Valid until {shortDate.format(haircutExpires!)}. Just mention it at the chair and we&apos;ll apply
+                        it.
                       </p>
                     </div>
                   )}
@@ -201,8 +232,8 @@ async function AccountDashboard() {
                       <h2 className="font-display text-3xl tracking-wide sm:text-4xl">Visiting In-Store?</h2>
                     </div>
                     <p className="mt-3 max-w-xl text-sm leading-relaxed text-offwhite/60">
-                      A friend referred you. Show this code at the shop so they get credit for your visit. Each code is
-                      valid for 7 days.
+                      A friend referred you. Show this In-Store Proof Code at the shop so they get credit for your visit.
+                      It&apos;s valid for {PROOF_CODE_DAYS} days.
                     </p>
                     <div className="mt-5">
                       <ReferralProofCode initial={proofClaim} serverNow={serverNow} />

@@ -7,20 +7,17 @@ import { toast } from "sonner";
 import { generateReferralProofCode } from "@/lib/actions/referrals";
 import { goldToast } from "@/lib/gold-toast";
 import { EASE_LUXE } from "@/lib/motion";
-import { proofCodeExpiresAt } from "@/lib/referrals";
+type Claim = { code: string; expiresAt: string; claimed: boolean } | null;
 
-type Claim = { code: string; createdAt: string; claimed: boolean } | null;
-
-function timeLeft(ms: number) {
-  const hours = Math.ceil(ms / 3_600_000);
-  if (hours <= 24) return `${hours} hour${hours === 1 ? "" : "s"}`;
-  const days = Math.ceil(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"}`;
+/** 7-day countdown split into units, e.g. { d: 6, h: 23, m: 59, s: 12 }. */
+function countdown(ms: number) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return { d: Math.floor(total / 86400), h: Math.floor((total % 86400) / 3600), m: Math.floor((total % 3600) / 60), s: total % 60 };
 }
 
 /**
- * The referred friend's in-store Referral Proof Code. It's valid for 7 days;
- * after that it shows "Code Expired" and offers a new one.
+ * The referred friend's In-Store Proof Code (created when they signed up). It's valid for 7 days,
+ * with a live countdown; after that it shows "Code Expired" and offers a new one.
  */
 export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serverNow: number }) {
   const [claim, setClaim] = useState<Claim>(initial);
@@ -28,13 +25,13 @@ export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serv
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  // Re-check the expiry every minute so an open tab flips to "Code Expired" on time.
+  // Ticks every second for the countdown; flips to "Code Expired" right on time.
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 60_000);
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const expiresAt = claim ? proofCodeExpiresAt(claim.createdAt) : 0;
+  const expiresAt = claim ? new Date(claim.expiresAt).getTime() : 0;
   const expired = !!claim && !claim.claimed && expiresAt <= now;
   const active = !!claim && !claim.claimed && !expired;
 
@@ -45,9 +42,9 @@ export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serv
         toast.error(result.error);
         return;
       }
-      setClaim({ code: result.code, createdAt: result.createdAt, claimed: false });
+      setClaim({ code: result.code, expiresAt: result.expiresAt, claimed: false });
       setNow(Date.now());
-      goldToast("Your Referral Proof Code is ready", `Show ${result.code} at the shop within 7 days.`);
+      goldToast("Your In-Store Proof Code is ready", `Show ${result.code} at the shop within 7 days.`);
     });
   }
 
@@ -67,7 +64,7 @@ export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serv
     return (
       <div className="flex items-start gap-3 rounded-2xl border border-gold/30 bg-gold/10 p-4 text-sm text-offwhite/80">
         <Check className="mt-0.5 size-4 shrink-0 text-gold" />
-        Your referral has been confirmed and your friend got the credit. Thanks for choosing New Legacy!
+        Your in-store visit has been confirmed and your friend got the credit. Thanks for choosing New Legacy!
       </div>
     );
   }
@@ -83,7 +80,7 @@ export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serv
           transition={{ duration: 0.4, ease: EASE_LUXE }}
           className="rounded-2xl border border-dashed border-gold/60 bg-black/30 p-4 sm:p-5"
         >
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold/80">Referral Proof Code</p>
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold/80">In-Store Proof Code</p>
           <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="font-mono text-3xl font-bold tracking-[0.18em] text-offwhite sm:text-4xl" aria-live="polite">
               {claim.code}
@@ -111,10 +108,13 @@ export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serv
               </AnimatePresence>
             </motion.button>
           </div>
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-offwhite/55">
-            <Clock className="size-3.5" />
-            Expires in {timeLeft(expiresAt - now)} · show it to your barber
-          </p>
+          <div className="mt-4">
+            <p className="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.25em] text-offwhite/45">
+              <Clock className="size-3.5" /> Expires in
+            </p>
+            <Countdown ms={expiresAt - now} />
+            <p className="mt-2 text-xs text-offwhite/45">Show it to your barber before it runs out.</p>
+          </div>
         </motion.div>
       ) : expired ? (
         <motion.div
@@ -136,6 +136,26 @@ export function ReferralProofCode({ initial, serverNow }: { initial: Claim; serv
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function Countdown({ ms }: { ms: number }) {
+  const { d, h, m, s } = countdown(ms);
+  const units = [
+    { v: d, l: "days" },
+    { v: h, l: "hrs" },
+    { v: m, l: "min" },
+    { v: s, l: "sec" },
+  ];
+  return (
+    <div className="mt-1.5 grid max-w-xs grid-cols-4 gap-2" role="timer" aria-label={`${d} days ${h} hours ${m} minutes left`}>
+      {units.map(({ v, l }) => (
+        <div key={l} className="rounded-lg bg-white/[0.06] px-1 py-2 text-center ring-1 ring-inset ring-white/10">
+          <span className="block font-display text-2xl leading-none tabular-nums text-gold">{String(v).padStart(2, "0")}</span>
+          <span className="mt-1 block text-[0.6rem] uppercase tracking-wider text-offwhite/45">{l}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 

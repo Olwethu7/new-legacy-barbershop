@@ -37,7 +37,7 @@ export default async function AdminPromoCodesPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">Marketing</p>
         <h1 className="mt-2 font-display text-4xl tracking-wide text-charcoal sm:text-6xl">Promo Codes</h1>
         <p className="mt-1 text-charcoal/60">
-          Create discount codes for the shop. Referral reward codes are created automatically when a customer reaches 5 referral points.
+          Create discount codes for the shop. Referral reward codes are created automatically when a customer reaches 5 shop referral points.
         </p>
       </FadeIn>
 

@@ -7,13 +7,13 @@ import { toast } from "sonner";
 import { confirmReferralCode, redeemServiceDiscount } from "@/lib/actions/referrals";
 import { goldToast } from "@/lib/gold-toast";
 import { EASE_LUXE } from "@/lib/motion";
-import { REFERRAL_POINTS_GOAL, REFERRAL_SERVICE_PERCENT, REFERRAL_SHOP_PERCENT } from "@/lib/referrals";
+import { REFERRAL_POINTS_GOAL, SERVICE_REWARD_DAYS, SERVICE_REWARD_PERCENT } from "@/lib/referrals";
 
 type Outcome =
   | { ok: true; code: string; referrer: string; friend: string; points: number; rewarded: boolean }
   | { ok: false; error: string };
 
-/** Admin -> Referrals: type the customer's Referral Proof Code and confirm it. */
+/** Admin -> Referrals: type the customer's In-Store Proof Code and confirm the visit. */
 export function ReferralConfirm() {
   const [code, setCode] = useState("");
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -31,7 +31,7 @@ export function ReferralConfirm() {
           "Referral confirmed",
           result.rewarded
             ? `${result.referrer} just unlocked a reward!`
-            : `${result.referrer} now has ${result.points}/${REFERRAL_POINTS_GOAL} points.`,
+            : `${result.referrer} now has ${result.points}/${REFERRAL_POINTS_GOAL} in-store visits.`,
         );
       } else {
         toast.error(result.error);
@@ -44,15 +44,16 @@ export function ReferralConfirm() {
       <div aria-hidden="true" className="absolute -right-20 -top-20 size-64 rounded-full bg-gold/15 blur-3xl" />
       <div className="relative">
         <h2 className="flex items-center gap-2 font-display text-3xl tracking-wide sm:text-4xl">
-          <ScanLine className="size-6 text-gold" /> Confirm a Referral
+          <ScanLine className="size-6 text-gold" /> Confirm In-Store Visit
         </h2>
         <p className="mt-2 max-w-xl text-sm text-offwhite/60">
-          A referred customer shows their Referral Proof Code from their account page. Codes are valid for 7 days.
+          A referred customer shows the In-Store Proof Code from their account page. Codes are valid for 7 days. Each
+          confirmed visit gives their referrer 1 of {REFERRAL_POINTS_GOAL} in-store visits.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
           <label htmlFor="proof-code" className="sr-only">
-            Referral Proof Code
+            In-Store Proof Code
           </label>
           <input
             id="proof-code"
@@ -61,7 +62,7 @@ export function ReferralConfirm() {
               setCode(e.target.value.toUpperCase());
               if (outcome) setOutcome(null);
             }}
-            placeholder="REF-8X2BK7"
+            placeholder="SRV-8X2BK7"
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
@@ -102,12 +103,12 @@ export function ReferralConfirm() {
                   {outcome.rewarded ? (
                     <p className="mt-2 flex items-start gap-2 text-offwhite/85">
                       <Gift className="mt-0.5 size-4 shrink-0 text-gold" />
-                      Reward unlocked: a {REFERRAL_SHOP_PERCENT}% shop code was sent to their account, and their next
-                      haircut is {REFERRAL_SERVICE_PERCENT}% off.
+                      Reward unlocked: {outcome.referrer} gets {SERVICE_REWARD_PERCENT}% off their next haircut, valid
+                      for {SERVICE_REWARD_DAYS} days.
                     </p>
                   ) : (
                     <p className="mt-2 text-offwhite/60">
-                      {outcome.referrer} now has {outcome.points}/{REFERRAL_POINTS_GOAL} points.
+                      {outcome.referrer} now has {outcome.points}/{REFERRAL_POINTS_GOAL} in-store visits.
                     </p>
                   )}
                 </>
@@ -129,10 +130,10 @@ export function RedeemServiceButton({ profileId, name }: { profileId: string; na
   const [pending, startTransition] = useTransition();
 
   function handleClick() {
-    if (!window.confirm(`Mark ${name}'s ${REFERRAL_SERVICE_PERCENT}% haircut discount as used?`)) return;
+    if (!window.confirm(`Mark ${name}'s ${SERVICE_REWARD_PERCENT}% haircut discount as used?`)) return;
     startTransition(async () => {
       const result = await redeemServiceDiscount(profileId);
-      if (result.ok) goldToast("Haircut reward used", `${name}'s ${REFERRAL_SERVICE_PERCENT}% discount has been applied.`);
+      if (result.ok) goldToast("Haircut reward used", `${name}'s ${SERVICE_REWARD_PERCENT}% discount has been applied.`);
       else toast.error(result.error);
     });
   }
